@@ -24,6 +24,121 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+companies_dict= {
+    "Energy & Petrochemicals": {
+        "Large": [
+            "Saudi Aramco",
+            "SABIC",
+            "Petro Rabigh",
+            "Saudi Kayan Petrochemical Company",
+            "Sahara International Petrochemical Company (SIPCHEM)",
+        ],
+        "Medium": [
+            "Yanbu National Petrochemical Company (Yansab)",
+            "Saudi Arabian Fertilizer Company (SAFCO)",
+            "Saudi Chevron Phillips Company",
+        ],
+        "Small": [
+            "Alujain Corporation",
+            "Nama Chemicals Company",
+            "Alkhorayef Petroleum Company",
+        ],
+    },
+    "Construction & Real Estate": {
+        "Large": [
+            "Saudi Binladin Group",
+            "Nesma & Partners Contracting Co. Ltd.",
+            "Emaar, The Economic City (ECC)",
+            "Dar Al Arkan Real Estate Development Company",
+        ],
+        "Medium": [
+            "Yanbu Cement Co.",
+            "Jabal Omar Development Company (JODC)",
+            "Umm Al Qura for Development & Construction Company",
+        ],
+        "Small": [
+            "Saudi Enaya Cooperative Insurance Co",
+            "Musharaka REIT Fund",
+            "Knowledge Economic City Company",
+            "Masah Specialized Construction",
+        ],
+    },
+    "Healthcare": {
+        "Large": [
+            "Dr. Sulaiman Al Habib Medical Group",
+            "Mouwasat Medical Services Company",
+            "Dallah Healthcare Company",
+            "Almoosa Health Co.",
+        ],
+        "Medium": [
+            "Jamjoom Pharmaceuticals Company",
+            "Tabuk Pharmaceuticals Company",
+            "Nahdi Medical Company (Pharmacies)",
+            "International Medical Center (IMC), Jeddah",
+        ],
+        "Small": [
+            "Saudi Pharmaceutical Industries & Medical Appliances Corp. (SPIMACO)",
+            "Al Hammadi Holding Company",
+            "Saudi Arabian Cooperative Insurance Co. (MedGulf)",
+        ],
+    },
+    "Technology & IT Services": {
+        "Large": [
+            "Al Moammar Information Systems Company (MIS)",
+            "Elm Company",
+            "STC Group",
+        ],
+        "Medium": [
+            "Rasan Information Technology Company",
+            "Naseej",
+        ],
+        "Small": [
+            "Edarat Communication & Information Technology Co.",
+            "Sure Global Tech Co.",
+            "Arab Sea Information Systems Co.",
+        ],
+    },
+    "Retail & Consumer Goods": {
+        "Large": [
+            "Almarai Company",
+            "Jarir Bookstore",
+            "Danube",
+            "Savola Group",
+        ],
+        "Medium": [
+            "Al-Othaim Supermarket",
+            "eXtra (United Electronics Company)",
+            "SACO Hardware",
+            "Tamimi Markets",
+            "Al Hokair Retail",
+        ],
+        "Small": [
+            "Fitaihi Holding Group",
+            "Anaam International Holding Group",
+            "Arabian Mills for Food Products",
+        ],
+    },
+}
+
+
+def list_sectors() -> list[str]:
+    """List all business sectors."""
+    return list(companies_dict.keys())
+
+
+def list_company_sizes(sector: str) -> list[str]:
+    """List company size categories (Large, Medium, Small) for a sector."""
+    if sector not in companies_dict:
+        raise ValueError(f"Sector '{sector}' not found")
+    return list(companies_dict[sector].keys())
+
+def list_companies_in_sector(sector: str, size: str) -> list[str]:
+    """List companies in a given sector and size."""
+    if sector not in companies_dict:
+        raise ValueError(f"Sector '{sector}' not found")
+    if size not in companies_dict[sector]:
+        raise ValueError(f"Size '{size}' not found in sector '{sector}'")
+    return companies_dict[sector][size]
 # User credentials and roles
 USERS = {
     'admin': {
@@ -733,83 +848,17 @@ def upload_background():
 def get_filter_domains():
     """Get all domains for filter wizard from database via MCP"""
     try:
-        import requests
+        sector_data = list_sectors()
+        result_list = []
+        for sector in sector_data:
+            result_list.append({
+                'value': sector,
+                'title': sector,
+                'description': sector,
+                'id': sector
+            })
         
-        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
-        
-        def call_execute_sql(sql, req_id=1):
-            payload = {
-                "jsonrpc": "2.0",
-                "id": req_id,
-                "method": "tools/call",
-                "params": {
-                    "name": "execute_sql_query",
-                    "arguments": {
-                        "sql_query": sql
-                    }
-                }
-            }
-            r = requests.post(MCP_URL, json=payload, timeout=30)
-            r.raise_for_status()
-            return r.json()
-        
-        # Initialize MCP (if needed)
-        try:
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {}
-            }, timeout=10)
-            
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "method": "notifications/initialized"
-            }, timeout=10)
-        except:
-            pass  # MCP might already be initialized
-        
-        # Execute SQL query via MCP
-        sql_query = "SELECT domain_id, domain_nm, domain_description_txt FROM svi_alerts.tdc_domain"
-        result = call_execute_sql(sql_query, req_id=10)
-        
-        # Parse the result
-        if result and "result" in result and "content" in result["result"]:
-            result_text = result["result"]["content"][0]["text"]
-            
-            # Parse the text result (assuming it's in a parseable format)
-            import json
-            try:
-                # Try to parse as JSON
-                domains_data = json.loads(result_text)
-            except:
-                # If not JSON, try to parse as table format
-                domains_data = []
-                lines = result_text.strip().split('\n')
-                for line in lines[1:]:  # Skip header
-                    if line.strip():
-                        parts = [p.strip() for p in line.split('|')]
-                        if len(parts) >= 3:
-                            domains_data.append({
-                                'domain_id': parts[0],
-                                'domain_nm': parts[1],
-                                'domain_description_txt': parts[2] if len(parts) > 2 else ''
-                            })
-            
-            # Transform data to match frontend format
-            result_list = []
-            for domain in domains_data:
-                result_list.append({
-                    'value': domain.get('domain_id', ''),
-                    'title': domain.get('domain_nm', ''),
-                    'description': domain.get('domain_description_txt', '') if domain.get('domain_description_txt') else 'No description available',
-                    'id': domain.get('domain_id', '')
-                })
-            
-            return jsonify({'success': True, 'domains': result_list})
-        else:
-            return jsonify({'success': False, 'error': 'No data returned from MCP'}), 500
-        
+        return jsonify({'success': True, 'domains': result_list}) 
     except Exception as e:
         print(f"Error fetching domains via MCP: {str(e)}")
         import traceback
@@ -819,95 +868,27 @@ def get_filter_domains():
 @app.route('/api/filter/strategies', methods=['GET'])
 def get_filter_strategies():
     """Get strategies for filter wizard Step 2 based on selected domain_id"""
-    try:
-        import requests
-        
-        # Get domain_id from query parameters
-        domain_id = request.args.get('domain_id')
-        print(f"🔍 Received domain_id parameter: {domain_id}")
-        
-        if not domain_id:
-            print("❌ No domain_id provided!")
-            return jsonify({'success': False, 'error': 'domain_id is required'}), 400
-        
-        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
-        
-        def call_execute_sql(sql, req_id=1):
-            payload = {
-                "jsonrpc": "2.0",
-                "id": req_id,
-                "method": "tools/call",
-                "params": {
-                    "name": "execute_sql_query",
-                    "arguments": {
-                        "sql_query": sql
-                    }
-                }
-            }
-            r = requests.post(MCP_URL, json=payload, timeout=30)
-            r.raise_for_status()
-            return r.json()
-        
-        # Initialize MCP (if needed)
-        try:
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {}
-            }, timeout=10)
-            
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "method": "notifications/initialized"
-            }, timeout=10)
-        except:
-            pass  # MCP might already be initialized
-        
-        
+          
         # Execute SQL query via MCP with domain_id parameter
-        sql_query = f"SELECT strategy_id, strategy_nm, strategy_description_txt FROM svi_alerts.tdc_strategy WHERE domain_id='{domain_id}'"
-        print(f"🔍 Executing SQL query: {sql_query}")
-        result = call_execute_sql(sql_query, req_id=20)
-        print(f"🔍 MCP Result: {result}")
+    try:
+        domain_id = request.args.get('domain_id')
+        print(f"🔍 Received domain_id:{domain_id}")
+        sector_data = list_sectors()
+        sectors = [s for s in sector_data if s.split()[0] == domain_id.strip()]
+        print(sectors)
+        sector = sectors[0]
+        sizes = list_company_sizes(sector)
+        result_list = []
+        for size in sizes:
+            result_list.append({
+                'value': size,
+                'title': size,
+                'description': size,
+                'id': size
+            })
         
-        # Parse the result
-        if result and "result" in result and "content" in result["result"]:
-            result_text = result["result"]["content"][0]["text"]
-            
-            # Parse the text result
-            import json
-            try:
-                # Try to parse as JSON
-                strategies_data = json.loads(result_text)
-            except:
-                # If not JSON, try to parse as table format
-                strategies_data = []
-                lines = result_text.strip().split('\n')
-                for line in lines[1:]:  # Skip header
-                    if line.strip():
-                        parts = [p.strip() for p in line.split('|')]
-                        if len(parts) >= 3:
-                            strategies_data.append({
-                                'strategy_id': parts[0],
-                                'strategy_nm': parts[1],
-                                'strategy_description_txt': parts[2] if len(parts) > 2 else ''
-                            })
-            
-            # Transform data to match frontend format
-            result_list = []
-            for strategy in strategies_data:
-                result_list.append({
-                    'value': strategy.get('strategy_id', ''),
-                    'title': strategy.get('strategy_nm', ''),
-                    'description': strategy.get('strategy_description_txt', '') if strategy.get('strategy_description_txt') else 'No description available',
-                    'id': strategy.get('strategy_id', '')
-                })
-            
-            return jsonify({'success': True, 'strategies': result_list})
-        else:
-            return jsonify({'success': False, 'error': 'No data returned from MCP'}), 500
-        
+        return jsonify({'success': True, 'strategies': result_list})
+
     except Exception as e:
         print(f"Error fetching strategies via MCP: {str(e)}")
         import traceback
@@ -922,148 +903,34 @@ def get_filter_alerts():
         
         # Get parameters from query
         domain_id = request.args.get('domain_id')
-        strategy_id = request.args.get('strategy_id')
+        size = request.args.get('strategy_id')
+        print(f"🔍 Received parameters - domain_id: {domain_id}, strategy_id: {size}")
+        sector_data = list_sectors()
+        sectors = [s for s in sector_data if s.split()[0] == domain_id.strip()]
+        print(sectors)
+        sector = sectors[0]
+        companies = list_companies_in_sector(sector, size)
         
-        print(f"🔍 Received parameters - domain_id: {domain_id}, strategy_id: {strategy_id}")
-        
-        if not domain_id or not strategy_id:
-            print("❌ Missing required parameters!")
-            return jsonify({'success': False, 'error': 'domain_id and strategy_id are required'}), 400
-        
-        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
-        
-        def call_execute_sql(sql, req_id=1):
-            payload = {
-                "jsonrpc": "2.0",
-                "id": req_id,
-                "method": "tools/call",
-                "params": {
-                    "name": "execute_sql_query",
-                    "arguments": {
-                        "sql_query": sql
-                    }
-                }
-            }
-            r = requests.post(MCP_URL, json=payload, timeout=30)
-            r.raise_for_status()
-            return r.json()
-        
-        # Initialize MCP (if needed)
-        try:
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {}
-            }, timeout=10)
-            
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "method": "notifications/initialized"
-            }, timeout=10)
-        except:
-            pass  # MCP might already be initialized
-        
-        # Execute specific SQL query via MCP
-        sql_query = f"""
-        SELECT actionable_entity_id, actionable_entity_nm, ta.alert_id, case_status, alert_status_id 
-        FROM svi_alerts.tdc_alert ta
-        JOIN fdhdata.tm_cases tc 
-            ON ta.alert_id = tc.alert_id
-        WHERE ta.domain_id = '{domain_id}'
-          AND alert_status_id = 'ACTIVE'
-          AND ta.queue_id IN (
-              SELECT queue_id
-              FROM svi_alerts.tdc_queue
-              WHERE domain_id = '{domain_id}'
-                AND strategy_id = '{strategy_id}'
-          )
-        """
-        
-        print(f"🔍 Executing SQL query: {sql_query}")
-        result = call_execute_sql(sql_query, req_id=30)
-        print(f"🔍 MCP Result received")
-        
-        # Parse the result
-        if result and "result" in result and "content" in result["result"]:
-            result_text = result["result"]["content"][0]["text"]
-            print(f"🔍 Raw result text (first 500 chars): {result_text[:500]}")
-            
-            # Parse the text result as table format
-            import json
-            alerts_data = []
-            
-            try:
-                # Try to parse as JSON first
-                alerts_data = json.loads(result_text)
-                print(f"✅ Parsed as JSON, found {len(alerts_data)} alerts")
-            except:
-                # Parse as table format
-                print("📋 Parsing as table format...")
-                lines = result_text.strip().split('\n')
-                
-                if len(lines) > 1:
-                    # First line is header
-                    headers = [h.strip() for h in lines[0].split('|')]
-                    print(f"📋 Headers: {headers}")
-                    
-                    # Rest are data rows
-                    for line in lines[1:]:
-                        if line.strip():
-                            values = [v.strip() for v in line.split('|')]
-                            if len(values) >= len(headers):
-                                row_dict = {}
-                                for i, header in enumerate(headers):
-                                    row_dict[header] = values[i] if i < len(values) else ''
-                                alerts_data.append(row_dict)
-                    
-                    print(f"✅ Parsed {len(alerts_data)} alerts from table")
-            
-            # Transform data to match frontend format
-            result_list = []
-            if isinstance(alerts_data, list) and len(alerts_data) > 0:
-                for alert in alerts_data[:10]:  # Limit to first 10 for display
-                    alert_id = alert.get('alert_id', 'N/A')
-                    entity_id = alert.get('actionable_entity_id', 'N/A')
-                    entity_name = alert.get('actionable_entity_nm', entity_id)
-                    case_status = alert.get('case_status', 'N/A')
-                    alert_status = alert.get('alert_status_id', 'N/A')
-                    
-                    # Build description with available info
-                    description_parts = []
-                    description_parts.append(f"Alert: {alert_id}")
-                    if case_status != 'N/A':
-                        description_parts.append(f"Case Status: {case_status}")
-                    if alert_status != 'N/A':
-                        description_parts.append(f"Alert Status: {alert_status}")
-                    if entity_id != 'N/A':
-                        description_parts.append(f"Entity ID: {entity_id}")
-                    
-                    description = " | ".join(description_parts)
-                    
-                    # Use entity name as title
-                    title = entity_name if entity_name != entity_id else f"Entity {entity_id}"
-                    
-                    result_list.append({
-                        'value': alert_id,
-                        'title': title,
-                        'description': description,
-                        'id': alert_id,
-                        'entity_id': entity_id,
-                        'entity_name': entity_name,
-                        'case_status': case_status,
-                        'alert_status': alert_status
+        result_list = []
+        for company in companies:
+            result_list.append({
+                        'value': company,
+                        'title': company,
+                        'description': company,
+                        'id': company,
+                        'entity_id': company,
+                        'entity_name': company,
+                        'case_status': 'ACTIVE',
+                        'alert_status': 'ACTIVE'
                     })
                 
-                print(f"✅ Transformed {len(result_list)} alerts for frontend")
-            
-            return jsonify({
-                'success': True, 
-                'alerts': result_list, 
-                'total': len(alerts_data)
-            })
-        else:
-            return jsonify({'success': False, 'error': 'No data returned from MCP'}), 500
+        print(f"✅ Transformed {len(result_list)} alerts for frontend")
+        
+        return jsonify({
+            'success': True, 
+            'alerts': result_list, 
+            'total': len(companies)
+        })
         
     except Exception as e:
         print(f"Error fetching alerts via MCP: {str(e)}")
@@ -1085,102 +952,18 @@ def execute_final_query():
         
         print(f"🔍 Executing final query with: domain_id={domain_id}, strategy_id={strategy_id}, alert_id={alert_id}")
         
-        if not domain_id or not strategy_id or not alert_id:
-            return jsonify({'success': False, 'error': 'Missing required parameters'}), 400
-        
-        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
-        
-        def call_execute_sql(sql, req_id=1):
-            payload = {
-                "jsonrpc": "2.0",
-                "id": req_id,
-                "method": "tools/call",
-                "params": {
-                    "name": "execute_sql_query",
-                    "arguments": {
-                        "sql_query": sql
-                    }
-                }
-            }
-            r = requests.post(MCP_URL, json=payload, timeout=30)
-            r.raise_for_status()
-            return r.json()
-        
-        # Initialize MCP
-        try:
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {}
-            }, timeout=10)
+       
             
-            requests.post(MCP_URL, json={
-                "jsonrpc": "2.0",
-                "method": "notifications/initialized"
-            }, timeout=10)
-        except:
-            pass
-        
-        # Build and execute final query
-        final_query = f"""SELECT *
-FROM svi_alerts.tdc_alert ta
-JOIN fdhdata.tm_cases tc 
-    ON ta.alert_id = tc.alert_id
-WHERE ta.domain_id = '{domain_id}'
-  AND alert_status_id = 'ACTIVE'
-  AND ta.alert_id = '{alert_id}'
-  AND ta.queue_id IN (
-      SELECT queue_id
-      FROM svi_alerts.tdc_queue
-      WHERE domain_id = '{domain_id}'
-        AND strategy_id = '{strategy_id}'
-  )"""
-        
-        print(f"🔍 Executing query: {final_query}")
-        result = call_execute_sql(final_query, req_id=100)
-        
-        # Parse result
-        if result and "result" in result and "content" in result["result"]:
-            result_text = result["result"]["content"][0]["text"]
-            print(f"✅ Query executed successfully, result length: {len(result_text)}")
-            
-            # Build investigator prompt
-            investigator_prompt = f"""STARTING_DATA_ROWS = 
-{result_text}
-
-Task:
-You have been provided with STARTING_DATA_ROWS as an initial set of information about alerts and associated cases.
-
-Instructions:
-1. Treat STARTING_DATA_ROWS as a factual starting point.
-2. Use your MCP tools to enrich the investigation where needed, including:
-   - Retrieving additional information on the actionable entity or related parties.
-   - Exploring related alerts, cases, accounts, transactions, or risk scores.
-   - Accessing associated documents, narratives, and any available metadata.
-3. Analyze all information to generate a **deep, investigator-ready case narrative**:
-   - Identify patterns, unusual relationships, or key insights.
-   - Summarize the context, involved entities, alerts, transactions, and case status.
-   - Highlight observations relevant for regulatory review and audit defensibility.
-4. If data is missing or unavailable, explicitly note it in the narrative.
-
-Requirements:
-- Only use factual data retrieved via MCP tools or provided in STARTING_DATA_ROWS.
-- Do not speculate or invent information.
-- Produce the narrative as **HTML tables**, following the system prompt formatting rules.
-
-Goal:
-Provide a thorough, regulator-ready case narrative that combines the initial query output with any relevant information available through your tools, enabling an AML investigator to understand the case and make informed decisions."""
-            
-            return jsonify({
+        # Build investigator prompt
+        investigator_prompt = f""" Generate RM Grade Report for {alert_id} company"""
+        final_query = f"SELECT * FROM companies WHERE sector = '{domain_id}' AND size = '{strategy_id}' AND name = '{alert_id}'"
+        result_text = f"Sample data for {alert_id} in sector {domain_id} of size {strategy_id}."
+        return jsonify({
                 'success': True,
                 'prompt': investigator_prompt,
                 'query': final_query,
                 'result_preview': result_text[:500]
             })
-        else:
-            return jsonify({'success': False, 'error': 'No data returned from query'}), 500
-            
     except Exception as e:
         print(f"Error executing final query: {str(e)}")
         import traceback
@@ -1813,5 +1596,5 @@ def get_active_widgets():
     return jsonify({'widgets': active_widgets})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=8080)
 
