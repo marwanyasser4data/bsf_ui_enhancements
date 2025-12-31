@@ -1,0 +1,14 @@
+2025-12-31 17:52:22 - logging.py:207 - set_session_logger() - [Session: thread_1] - Session logger activated for session thread_1 in thread MainThread
+2025-12-31 17:52:22 - logging.py:352 - _log_with_session() - [Session: thread_1] - [info] Basic Agent Logger initialized (called by basic_agent.py:<module>:26)
+2025-12-31 17:52:58 - logging.py:207 - set_session_logger() - [Session: thread_1] - Session logger activated for session thread_1 in thread MainThread
+2025-12-31 17:52:58 - logging.py:352 - _log_with_session() - [Session: thread_1] - [info] Basic Agent Logger initialized (called by basic_agent.py:<module>:26)
+2025-12-31 17:53:22 - logging.py:207 - set_session_logger() - [Session: thread_1] - Session logger activated for session thread_1 in thread MainThread
+2025-12-31 17:53:22 - logging.py:352 - _log_with_session() - [Session: thread_1] - [info] Basic Agent Logger initialized (called by basic_agent.py:<module>:26)
+2025-12-31 18:09:50 - basic_agent.py:23 - <module>() - [Session: thread_1] - Session logger activated for session thread_1 in thread MainThread
+2025-12-31 18:09:50 - basic_agent.py:26 - <module>() - [Session: thread_1] - [info] Basic Agent Logger initialized (called by basic_agent.py:<module>:26)
+2025-12-31 18:10:37 - basic_agent.py:23 - <module>() - [Session: thread_1] - Session logger activated for session thread_1 in thread MainThread
+2025-12-31 18:10:37 - basic_agent.py:26 - <module>() - [Session: thread_1] - [info] Basic Agent Logger initialized (called by basic_agent.py:<module>:26)
+2025-12-31 18:12:20 - basic_agent.py:23 - <module>() - [Session: thread_1] - Session logger activated for session thread_1 in thread MainThread
+2025-12-31 18:12:20 - basic_agent.py:26 - <module>() - [Session: thread_1] - Basic Agent Logger initialized
+2025-12-31 18:13:57 - basic_agent.py:23 - <module>() - [Session: thread_1] - Session logger activated for session thread_1 in thread MainThread
+2025-12-31 18:13:57 - basic_agent.py:26 - <module>() - [Session: thread_1] - Basic Agent Logger initialized
