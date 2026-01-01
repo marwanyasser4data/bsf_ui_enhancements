@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import InMemorySaver  
 from langchain.messages import HumanMessage
-from utils.logging import SessionLogger, log_info
+# from utils.logging import SessionLogger, log_info
 from utils.variables import LOG_FOLDER
 
 # Setup logging for the session
@@ -18,12 +18,12 @@ session_id = 'thread_1'
 # Ensure we pass a file path, not just the directory
 log_file_path = os.path.join(LOG_FOLDER, f"session_{session_id}.log")
 
-# Create and set the logger
-logger = SessionLogger.create_session_logger(session_id=session_id, log_file_path=log_file_path)
-SessionLogger.set_session_logger(session_id=session_id, logger=logger)
+# # Create and set the logger
+# logger = SessionLogger.create_session_logger(session_id=session_id, log_file_path=log_file_path)
+# SessionLogger.set_session_logger(session_id=session_id, logger=logger)
 
-# Test logging
-log_info('Basic Agent Logger initialized')
+# # Test logging
+# log_info('Basic Agent Logger initialized')
 
 llm = ChatOpenAI(api_key=os.getenv('OPENROUTER_API_KEY'), 
                 base_url=os.getenv('OPENROUTER_BASE_URL'), 
