@@ -13,4 +13,8 @@ logs/
 # Virtual environments
 .venv
 
+# environment variables
 .env
+
+# git patches
+*.patch
