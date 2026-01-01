@@ -7,8 +7,122 @@ const windowState = {
     zIndex: 10
 };
 
+// Simple Markdown Parser (fallback for when marked.js doesn't work)
+function simpleMarkdown(text) {
+    if (!text) return '';
+
+    let html = text;
+
+    // PREPROCESSING: Fix concatenated patterns by adding newlines
+    // Add newlines before list markers that follow other text
+    html = html.replace(/([^\n])(\s*- )/g, '$1\n$2');
+    html = html.replace(/([^\n])(\s*\* )/g, '$1\n$2');
+    html = html.replace(/([^\n])(\s*\d+\. )/g, '$1\n$2');
+
+    // Add newlines before headers
+    html = html.replace(/([^\n])(#{1,6} )/g, '$1\n$2');
+
+    // Add newlines before blockquotes
+    html = html.replace(/([^\n])(> )/g, '$1\n$2');
+
+    // Escape HTML
+    html = html.replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    // Code blocks (triple backticks)
+    html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, function (match, lang, code) {
+        return '<pre><code class="language-' + lang + '">' + code.trim() + '</code></pre>';
+    });
+
+    // Inline code (single backticks)
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Headers
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+    // Bold
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+
+    // Italic (be careful not to match list markers)
+    html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em>$1</em>');
+    html = html.replace(/(?<!_)_([^_\n]+)_(?!_)/g, '<em>$1</em>');
+
+    // Strikethrough
+    html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+    // Unordered lists - match lines starting with - or *
+    html = html.replace(/^[\*\-] (.+)$/gm, '<li>$1</li>');
+
+    // Ordered lists
+    html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+    // Wrap consecutive list items in ul/ol
+    html = html.replace(/(<li>[\s\S]*?<\/li>)(\s*<li>)/g, '$1$2');
+    html = html.replace(/(<li>.*<\/li>(\n|<br>)?)+/g, '<ul>$&</ul>');
+
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+    // Blockquotes
+    html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+    // Horizontal rules
+    html = html.replace(/^---+$/gm, '<hr>');
+
+    // Paragraphs - convert double newlines to paragraph breaks
+    html = html.replace(/\n\n+/g, '</p><p>');
+
+    // Single newlines to <br>
+    html = html.replace(/\n/g, '<br>');
+
+    // Wrap in paragraph if not already wrapped
+    if (!html.startsWith('<')) {
+        html = '<p>' + html + '</p>';
+    }
+
+    // Clean up empty paragraphs and fix structure
+    html = html.replace(/<p><\/p>/g, '');
+    html = html.replace(/<p>(<h[1-6]>)/g, '$1');
+    html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
+    html = html.replace(/<p>(<pre>)/g, '$1');
+    html = html.replace(/(<\/pre>)<\/p>/g, '$1');
+    html = html.replace(/<p>(<ul>)/g, '$1');
+    html = html.replace(/(<\/ul>)<\/p>/g, '$1');
+    html = html.replace(/<p>(<blockquote>)/g, '$1');
+    html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
+    html = html.replace(/<br>(<ul>)/g, '$1');
+    html = html.replace(/(<\/ul>)<br>/g, '$1');
+
+    return html;
+}
+
+// Helper function to parse markdown - uses marked.js if available, falls back to simple parser
+function parseMarkdown(text) {
+    if (!text) return '';
+
+    // Try marked.js first
+    if (typeof marked !== 'undefined') {
+        try {
+            if (typeof marked.parse === 'function') {
+                return marked.parse(text);
+            } else if (typeof marked === 'function') {
+                return marked(text);
+            }
+        } catch (e) {
+            console.warn('marked.js error, using fallback:', e);
+        }
+    }
+
+    // Fallback to simple parser
+    return simpleMarkdown(text);
+}
+
 // Initialize on DOM Load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initClock();
     initWindowDragging();
     initKeyboardShortcuts();
@@ -25,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function toggleWindow(windowId) {
     const window = document.getElementById(windowId);
     if (!window) return;
-    
+
     if (window.style.display === 'none') {
         openWindow(windowId);
     } else {
@@ -36,31 +150,39 @@ function toggleWindow(windowId) {
 function openWindow(windowId) {
     const window = document.getElementById(windowId);
     if (!window) return;
-    
+
     window.style.display = 'flex';
     window.classList.remove('closing');
     bringToFront(windowId);
     updateTaskbarButton(windowId, true);
-    
+
     if (!windowState.openWindows.includes(windowId)) {
         windowState.openWindows.push(windowId);
     }
+
+    // Add class to body to hide footer logo
+    document.body.classList.add('window-open');
 }
 
 function closeWindow(windowId) {
     const window = document.getElementById(windowId);
     if (!window) return;
-    
+
     window.classList.add('closing');
-    
+
     setTimeout(() => {
         window.style.display = 'none';
         window.classList.remove('closing');
         updateTaskbarButton(windowId, false);
-        
+
         const index = windowState.openWindows.indexOf(windowId);
         if (index > -1) {
             windowState.openWindows.splice(index, 1);
+        }
+
+        // Remove class from body if no windows are open
+        if (windowState.openWindows.length === 0) {
+            document.body.classList.remove('window-open');
         }
     }, 200);
 }
@@ -68,15 +190,20 @@ function closeWindow(windowId) {
 function minimizeWindow(windowId) {
     const window = document.getElementById(windowId);
     if (!window) return;
-    
+
     window.style.display = 'none';
     updateTaskbarButton(windowId, false);
+
+    // Remove class from body if no windows are open
+    if (windowState.openWindows.length === 0) {
+        document.body.classList.remove('window-open');
+    }
 }
 
 function toggleMaximize(windowId) {
     const window = document.getElementById(windowId);
     if (!window) return;
-    
+
     window.classList.toggle('maximized');
 }
 
@@ -124,44 +251,44 @@ function initClock() {
 
 function updateClock() {
     const now = new Date();
-    
+
     // Taskbar time
-    const timeStr = now.toLocaleTimeString('ar-SA', { 
-        hour: '2-digit', 
+    const timeStr = now.toLocaleTimeString('ar-SA', {
+        hour: '2-digit',
         minute: '2-digit',
-        hour12: false 
+        hour12: false
     });
-    const dateStr = now.toLocaleDateString('ar-SA', { 
-        day: 'numeric', 
-        month: 'numeric' 
+    const dateStr = now.toLocaleDateString('ar-SA', {
+        day: 'numeric',
+        month: 'numeric'
     });
-    
+
     const taskbarTime = document.getElementById('taskbarTime');
     const taskbarDate = document.getElementById('taskbarDate');
     if (taskbarTime) taskbarTime.textContent = timeStr;
     if (taskbarDate) taskbarDate.textContent = dateStr;
-    
+
     // Header bar clock
     const headerTime = document.getElementById('headerTime');
     const headerDate = document.getElementById('headerDate');
     if (headerTime) headerTime.textContent = timeStr;
     if (headerDate) {
-        headerDate.textContent = now.toLocaleDateString('ar-SA', { 
-            day: 'numeric', 
+        headerDate.textContent = now.toLocaleDateString('ar-SA', {
+            day: 'numeric',
             month: 'short',
             year: 'numeric'
         });
     }
-    
+
     // Widget clock
     const clockTime = document.getElementById('clockTime');
     const clockDate = document.getElementById('clockDate');
     if (clockTime) clockTime.textContent = timeStr;
     if (clockDate) {
-        clockDate.textContent = now.toLocaleDateString('ar-SA', { 
+        clockDate.textContent = now.toLocaleDateString('ar-SA', {
             weekday: 'long',
-            day: 'numeric', 
-            month: 'long' 
+            day: 'numeric',
+            month: 'long'
         });
     }
 }
@@ -174,25 +301,25 @@ function setLanguage(lang) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language: lang })
     }).then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update localStorage
-            localStorage.setItem('preferredLanguage', lang);
-            // Reload page to apply changes
+        .then(data => {
+            if (data.success) {
+                // Update localStorage
+                localStorage.setItem('preferredLanguage', lang);
+                // Reload page to apply changes
+                window.location.reload();
+            }
+        }).catch(err => {
+            console.error('Language change error:', err);
             window.location.reload();
-        }
-    }).catch(err => {
-        console.error('Language change error:', err);
-        window.location.reload();
-    });
+        });
 }
 
 function applyTranslations() {
     const lang = document.documentElement.lang || 'ar';
     if (typeof translations === 'undefined') return;
-    
+
     const trans = translations[lang] || translations['ar'];
-    
+
     // Update all elements with data-i18n attribute
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -200,7 +327,7 @@ function applyTranslations() {
             el.textContent = trans[key];
         }
     });
-    
+
     // Update placeholders
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
@@ -208,7 +335,7 @@ function applyTranslations() {
             el.placeholder = trans[key];
         }
     });
-    
+
     // Update titles
     document.querySelectorAll('[data-i18n-title]').forEach(el => {
         const key = el.getAttribute('data-i18n-title');
@@ -230,38 +357,38 @@ function initWindowDragging() {
     document.querySelectorAll('.window-header').forEach(header => {
         let isDragging = false;
         let startX, startY, startLeft, startTop;
-        
-        header.addEventListener('mousedown', function(e) {
+
+        header.addEventListener('mousedown', function (e) {
             if (e.target.closest('.window-controls')) return;
-            
+
             const window = header.closest('.app-window');
             if (window.classList.contains('maximized')) return;
-            
+
             isDragging = true;
             bringToFront(window.id);
-            
+
             const rect = window.getBoundingClientRect();
             startX = e.clientX;
             startY = e.clientY;
             startLeft = rect.left;
             startTop = rect.top;
-            
+
             window.style.transition = 'none';
         });
-        
-        document.addEventListener('mousemove', function(e) {
+
+        document.addEventListener('mousemove', function (e) {
             if (!isDragging) return;
-            
+
             const window = header.closest('.app-window');
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
-            
+
             window.style.left = startLeft + deltaX + 'px';
             window.style.top = startTop + deltaY + 'px';
             window.style.transform = 'none';
         });
-        
-        document.addEventListener('mouseup', function() {
+
+        document.addEventListener('mouseup', function () {
             if (isDragging) {
                 isDragging = false;
                 const window = header.closest('.app-window');
@@ -274,7 +401,7 @@ function initWindowDragging() {
 // ============ Keyboard Shortcuts ============
 
 function initKeyboardShortcuts() {
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         // Escape to close active window
         if (e.key === 'Escape') {
             if (windowState.activeWindow) {
@@ -282,7 +409,7 @@ function initKeyboardShortcuts() {
             }
             closeStartMenu();
         }
-        
+
         // Enter to send message
         if (e.key === 'Enter' && !e.shiftKey) {
             const input = document.getElementById('messageInput');
@@ -297,14 +424,14 @@ function initKeyboardShortcuts() {
 // ============ Click Outside ============
 
 function initClickOutside() {
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         // Close start menu when clicking outside
         const startMenu = document.getElementById('startMenu');
         const startBtn = document.querySelector('.start-btn');
         if (!startMenu.contains(e.target) && !startBtn.contains(e.target)) {
             closeStartMenu();
         }
-        
+
         // Close user dropdown when clicking outside
         const userDropdown = document.getElementById('userDropdown');
         const userBtn = document.querySelector('.user-btn');
@@ -319,6 +446,10 @@ function initClickOutside() {
 let conversationHistory = [];
 let currentSessionId = null;
 let chatSessions = [];
+
+// Global variables for streaming control
+let activeEventSource = null;
+let isStreaming = false;
 
 // Load chat sessions from localStorage
 function loadChatSessions() {
@@ -338,12 +469,12 @@ function saveChatSessions() {
 function renderChatHistory() {
     const historyList = document.getElementById('chatHistoryList');
     if (!historyList) return;
-    
+
     if (chatSessions.length === 0) {
         historyList.innerHTML = '<div class="no-history">لا توجد محادثات سابقة</div>';
         return;
     }
-    
+
     historyList.innerHTML = chatSessions.map((session, index) => `
         <div class="history-item ${session.id === currentSessionId ? 'active' : ''}" 
              onclick="loadSession('${session.id}')" data-session="${session.id}">
@@ -365,7 +496,7 @@ function formatDate(timestamp) {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now - date;
-    
+
     if (diff < 60000) return 'الآن';
     if (diff < 3600000) return `منذ ${Math.floor(diff / 60000)} دقيقة`;
     if (diff < 86400000) return `منذ ${Math.floor(diff / 3600000)} ساعة`;
@@ -378,31 +509,23 @@ function newChat() {
     if (currentSessionId && conversationHistory.length > 0) {
         saveCurrentSession();
     }
-    
+
+    // Reset state - session will be created on first message
     conversationHistory = [];
-    currentSessionId = generateSessionId();
-    
-    // Create new session
-    const newSession = {
-        id: currentSessionId,
-        title: 'محادثة جديدة',
-        timestamp: Date.now(),
-        messages: []
-    };
-    chatSessions.unshift(newSession);
-    saveChatSessions();
+    currentSessionId = null;
+
     renderChatHistory();
-    
+
     const messagesContainer = document.getElementById('chatMessages');
     const welcomeScreen = document.getElementById('welcomeScreen');
-    
+
     // Clear messages and show welcome screen
     if (messagesContainer && welcomeScreen) {
         messagesContainer.innerHTML = '';
         messagesContainer.appendChild(welcomeScreen);
         welcomeScreen.style.display = 'flex';
     }
-    
+
     const input = document.getElementById('messageInput');
     if (input) input.value = '';
 }
@@ -430,21 +553,21 @@ function loadSession(sessionId) {
     if (currentSessionId && conversationHistory.length > 0) {
         saveCurrentSession();
     }
-    
+
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
-    
+
     currentSessionId = sessionId;
     conversationHistory = session.messages || [];
-    
+
     // Render messages
     const messagesContainer = document.getElementById('chatMessages');
     const welcomeScreen = document.getElementById('welcomeScreen');
-    
+
     if (!messagesContainer) return;
-    
+
     messagesContainer.innerHTML = '';
-    
+
     if (conversationHistory.length === 0) {
         if (welcomeScreen) {
             messagesContainer.appendChild(welcomeScreen);
@@ -456,7 +579,7 @@ function loadSession(sessionId) {
             addMessageToDOM(msg.text, msg.type);
         });
     }
-    
+
     renderChatHistory();
 }
 
@@ -464,7 +587,7 @@ function loadSession(sessionId) {
 function deleteSession(sessionId) {
     chatSessions = chatSessions.filter(s => s.id !== sessionId);
     saveChatSessions();
-    
+
     if (sessionId === currentSessionId) {
         if (chatSessions.length > 0) {
             loadSession(chatSessions[0].id);
@@ -479,43 +602,236 @@ function deleteSession(sessionId) {
 function sendMessage() {
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
-    
+
     if (!message) return;
-    
+
+    // Create a new session if one doesn't exist (first message)
+    if (!currentSessionId) {
+        currentSessionId = generateSessionId();
+        const newSession = {
+            id: currentSessionId,
+            title: message.substring(0, 30) + (message.length > 30 ? '...' : ''),
+            timestamp: Date.now(),
+            messages: []
+        };
+        chatSessions.unshift(newSession);
+        saveChatSessions();
+        renderChatHistory();
+    }
+
     // Hide welcome screen
     const welcomeScreen = document.getElementById('welcomeScreen');
     if (welcomeScreen) {
         welcomeScreen.style.display = 'none';
     }
-    
-    // Add user message
-    addMessage(message, 'user');
+
+    // Add user message to history first
+    conversationHistory.push({ text: message, type: 'user', timestamp: Date.now() });
+
+    // Add user message to DOM
+    addMessageToDOM(message, 'user');
     input.value = '';
-    
+
     // Show typing indicator
     showTypingIndicator();
-    
-    // Send to API
-    fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            message: message,
-            session_id: currentSessionId || generateSessionId()
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideTypingIndicator();
-        if (data.response) {
-            addMessage(data.response, 'bot');
-        }
-    })
-    .catch(error => {
-        hideTypingIndicator();
-        console.error('Error:', error);
-        addMessage('حدث خطأ في الاتصال', 'bot');
+
+    // Change button to stop icon
+    toggleSendButton(true);
+    isStreaming = true;
+
+    // Always use streaming for real-time response
+    const url = '/stream-chat?' + new URLSearchParams({
+        message: message,
+        session_id: currentSessionId || ''
     });
+
+    console.log('[Chat] Sending message to session:', currentSessionId);
+
+    const eventSource = new EventSource(url);
+    activeEventSource = eventSource;
+
+    let botMessageDiv = null;
+    let botContent = null;
+    let fullResponse = '';
+    let hasError = false;
+
+    eventSource.onmessage = function (event) {
+        // Hide typing indicator on first chunk
+        if (!botMessageDiv) {
+            hideTypingIndicator();
+        }
+
+        // Decode the JSON-encoded chunk
+        let chunk;
+        try {
+            chunk = JSON.parse(event.data);
+        } catch (e) {
+            // Fallback for non-JSON data
+            chunk = event.data;
+        }
+
+        fullResponse += chunk;
+
+        // Create bot message div if it doesn't exist
+        if (!botMessageDiv) {
+            const container = document.getElementById('chatMessages');
+            botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message bot';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = 'AI';
+
+            botContent = document.createElement('div');
+            botContent.className = 'message-content';
+
+            botMessageDiv.appendChild(avatar);
+            botMessageDiv.appendChild(botContent);
+            container.appendChild(botMessageDiv);
+        }
+
+        // Clean up raw response BEFORE markdown parsing
+        let cleanedResponse = fullResponse
+            // Remove leading/trailing whitespace and newlines
+            .trim()
+            // Remove excessive newlines at the beginning (keep max 1)
+            .replace(/^(\n|\r\n|\r)+/, '')
+            // Remove excessive newlines (more than 2 consecutive)
+            .replace(/(\n|\r\n|\r){3,}/g, '\n\n')
+            // Remove newlines right before tables
+            .replace(/(\n|\r\n|\r)+(\|.*\|)/g, '\n$2')
+            // Remove newlines right before markdown headers
+            .replace(/(\n|\r\n|\r)+(\#{1,6}\s)/g, '\n$2');
+
+        // Check if content is already HTML (starts with HTML tag)
+        const isHTML = cleanedResponse.trim().startsWith('<');
+
+        let parsedContent;
+        if (isHTML) {
+            // If it's already HTML, use it directly (don't convert newlines to br)
+            parsedContent = cleanedResponse;
+        } else {
+            // Parse markdown only if it's not HTML
+            parsedContent = parseMarkdown(cleanedResponse);
+        }
+
+        // Clean up excessive HTML elements after parsing
+        parsedContent = parsedContent
+            // Remove all br tags at the very beginning
+            .replace(/^(\s*<br\s*\/?>\s*)+/gi, '')
+            // Remove all br tags at the very end
+            .replace(/(\s*<br\s*\/?>\s*)+$/gi, '')
+            // Remove multiple consecutive br tags (keep max 1)
+            .replace(/(<br\s*\/?>\s*){2,}/gi, '<br>')
+            // Remove br before and after tables
+            .replace(/<br\s*\/?>\s*(<table)/gi, '$1')
+            .replace(/(<\/table>)\s*<br\s*\/?>/gi, '$1')
+            // Remove br after opening p tag
+            .replace(/(<p>)\s*<br\s*\/?>/gi, '$1')
+            // Remove br before closing p tag
+            .replace(/<br\s*\/?>\s*(<\/p>)/gi, '$1')
+            // Remove empty paragraphs
+            .replace(/<p>\s*<\/p>/gi, '')
+            // Remove paragraphs with only br
+            .replace(/<p>\s*(<br\s*\/?>)+\s*<\/p>/gi, '')
+            // Remove leading empty paragraphs or whitespace
+            .replace(/^(\s*<p>\s*<\/p>\s*)+/gi, '')
+            // Remove paragraphs between tables
+            .replace(/(<\/table>)\s*<p>\s*<\/p>\s*(<table)/gi, '$1\n$2')
+            // Remove empty paragraphs with only whitespace
+            .replace(/<p>\s*(&nbsp;|\u00A0|\s)*\s*<\/p>/gi, '');
+
+        // Debug: log the content to see what's happening
+        console.log('[Debug] Raw response length:', fullResponse.length);
+        console.log('[Debug] Cleaned response (first 200 chars):', cleanedResponse.substring(0, 200));
+        console.log('[Debug] Parsed content (first 500 chars):', parsedContent.substring(0, 500));
+
+        botContent.innerHTML = parsedContent;
+
+        // Scroll to bottom
+        const container = document.getElementById('chatMessages');
+        container.scrollTop = container.scrollHeight;
+    };
+
+    eventSource.onerror = function (error) {
+        hideTypingIndicator();
+        toggleSendButton(false);
+        isStreaming = false;
+        activeEventSource = null;
+        hasError = true;
+        eventSource.close();
+
+        console.error('Streaming error:', error);
+
+        if (!fullResponse) {
+            // No response received, show error message
+            addMessageToDOM('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.', 'bot');
+            conversationHistory.push({ text: 'حدث خطأ في الاتصال', type: 'bot', timestamp: Date.now() });
+        } else {
+            // Partial response received, save it
+            conversationHistory.push({ text: fullResponse, type: 'bot', timestamp: Date.now() });
+        }
+
+        saveCurrentSession();
+    };
+
+    eventSource.addEventListener('end', function (event) {
+        eventSource.close();
+        toggleSendButton(false);
+        isStreaming = false;
+        activeEventSource = null;
+
+        if (!hasError && fullResponse) {
+            // Save complete response to history
+            conversationHistory.push({ text: fullResponse, type: 'bot', timestamp: Date.now() });
+            saveCurrentSession();
+        }
+    });
+
+    // Timeout safety - close after 5 minutes
+    setTimeout(() => {
+        if (eventSource.readyState !== EventSource.CLOSED) {
+            eventSource.close();
+            toggleSendButton(false);
+            isStreaming = false;
+            activeEventSource = null;
+            if (fullResponse) {
+                conversationHistory.push({ text: fullResponse, type: 'bot', timestamp: Date.now() });
+                saveCurrentSession();
+            }
+        }
+    }, 300000);
+}
+
+// Toggle send button between send and stop icons
+function toggleSendButton(showStop) {
+    const sendIcon = document.getElementById('sendIcon');
+    const stopIcon = document.getElementById('stopIcon');
+
+    if (sendIcon && stopIcon) {
+        if (showStop) {
+            sendIcon.style.display = 'none';
+            stopIcon.style.display = 'block';
+        } else {
+            sendIcon.style.display = 'block';
+            stopIcon.style.display = 'none';
+        }
+    }
+}
+
+// Handle send button click - either send or stop
+function handleSendButton() {
+    if (isStreaming && activeEventSource) {
+        // Stop streaming
+        activeEventSource.close();
+        activeEventSource = null;
+        isStreaming = false;
+        toggleSendButton(false);
+        hideTypingIndicator();
+    } else {
+        // Send message
+        sendMessage();
+    }
 }
 
 function sendQuickMessage(message) {
@@ -531,7 +847,7 @@ function clearHistory() {
         currentSessionId = null;
         saveChatSessions();
         renderChatHistory();
-        
+
         // Reset to welcome screen
         const messagesContainer = document.getElementById('chatMessages');
         const welcomeScreen = document.getElementById('welcomeScreen');
@@ -540,7 +856,7 @@ function clearHistory() {
             messagesContainer.appendChild(welcomeScreen);
             welcomeScreen.style.display = 'flex';
         }
-        
+
         // Update stats
         updateWidgetStats();
     }
@@ -551,7 +867,7 @@ function updateWidgetStats() {
     const totalChats = document.getElementById('totalChats');
     const todayChats = document.getElementById('todayChats');
     const totalMessages = document.getElementById('totalMessages');
-    
+
     if (totalChats) totalChats.textContent = chatSessions.length;
     if (todayChats) {
         const today = new Date().toDateString();
@@ -561,7 +877,7 @@ function updateWidgetStats() {
     if (totalMessages) {
         let msgCount = 0;
         chatSessions.forEach(s => { msgCount += (s.messages?.length || 0); });
-        totalMessages.textContent = msgCount > 999 ? (msgCount/1000).toFixed(1) + 'K' : msgCount;
+        totalMessages.textContent = msgCount > 999 ? (msgCount / 1000).toFixed(1) + 'K' : msgCount;
     }
 }
 
@@ -569,22 +885,28 @@ function updateWidgetStats() {
 function addMessageToDOM(text, type) {
     const container = document.getElementById('chatMessages');
     if (!container) return;
-    
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
-    
+
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
     avatar.textContent = type === 'user' ? 'أ' : 'AI';
-    
+
     const content = document.createElement('div');
     content.className = 'message-content';
-    content.textContent = text;
-    
+
+    // Parse Markdown for bot messages
+    if (type === 'bot') {
+        content.innerHTML = parseMarkdown(text);
+    } else {
+        content.textContent = text;
+    }
+
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(content);
     container.appendChild(messageDiv);
-    
+
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
 }
@@ -593,17 +915,17 @@ function addMessageToDOM(text, type) {
 function addMessage(text, type) {
     // Add to DOM
     addMessageToDOM(text, type);
-    
+
     // Save to conversation history
     conversationHistory.push({ text, type, timestamp: Date.now() });
-    
+
     // Update session
     saveCurrentSession();
 }
 
 function showTypingIndicator() {
     const container = document.getElementById('chatMessages');
-    
+
     const indicator = document.createElement('div');
     indicator.className = 'message bot typing-indicator';
     indicator.id = 'typingIndicator';
@@ -615,7 +937,7 @@ function showTypingIndicator() {
             </div>
         </div>
     `;
-    
+
     container.appendChild(indicator);
     container.scrollTop = container.scrollHeight;
 }
@@ -628,8 +950,7 @@ function hideTypingIndicator() {
 }
 
 function generateSessionId() {
-    currentSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    return currentSessionId;
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
 // ============ Utility Functions ============
@@ -639,7 +960,7 @@ function attachFile() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,.pdf,.doc,.docx,.txt';
-    input.onchange = function(e) {
+    input.onchange = function (e) {
         const file = e.target.files[0];
         if (file) {
             // Handle file upload
@@ -654,7 +975,7 @@ function voiceInput() {
     if ('webkitSpeechRecognition' in window) {
         const recognition = new webkitSpeechRecognition();
         recognition.lang = document.documentElement.lang === 'ar' ? 'ar-SA' : 'en-US';
-        recognition.onresult = function(event) {
+        recognition.onresult = function (event) {
             const text = event.results[0][0].transcript;
             document.getElementById('messageInput').value = text;
         };
@@ -672,14 +993,14 @@ async function loadCustomWidgets() {
         const response = await fetch('/api/widgets');
         const data = await response.json();
         const allWidgets = data.widgets || [];
-        
+
         // Update default widget visibility based on active state
         updateDefaultWidgets(allWidgets);
-        
+
         // Load only active custom widgets
         const activeCustomWidgets = allWidgets.filter(w => w.type === 'custom' && w.html_content && w.active);
         renderCustomWidgets(activeCustomWidgets);
-        
+
     } catch (error) {
         console.error('Error loading widgets:', error);
     }
@@ -687,7 +1008,7 @@ async function loadCustomWidgets() {
 
 function updateDefaultWidgets(allWidgets) {
     const defaultWidgetIds = ['ai-models', 'chat-stats', 'system-status', 'quick-actions'];
-    
+
     defaultWidgetIds.forEach(widgetId => {
         const widgetElement = document.querySelector(`[data-widget-id="${widgetId}"]`);
         if (widgetElement) {
@@ -705,7 +1026,7 @@ function updateDefaultWidgets(allWidgets) {
 function renderCustomWidgets(widgets) {
     const container = document.getElementById('customWidgetsContainer');
     if (!container) return;
-    
+
     container.innerHTML = widgets.map(widget => `
         <div class="desktop-widget custom-widget" data-widget-id="${widget.id}">
             <div class="widget-header">
@@ -757,10 +1078,10 @@ function initSettings() {
     if (saved) {
         Object.assign(settingsState, JSON.parse(saved));
     }
-    
+
     // Apply settings to UI
     applySettingsToUI();
-    
+
     // Setup event listeners
     setupSettingsEventListeners();
 }
@@ -771,27 +1092,27 @@ function showSettingsTab(tabName) {
     document.querySelectorAll('.settings-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    
+
     // Remove active from all nav items
     document.querySelectorAll('.settings-nav-item').forEach(item => {
         item.classList.remove('active');
     });
-    
+
     // Show selected tab
     const selectedTab = document.getElementById('tab-' + tabName);
     if (selectedTab) {
         selectedTab.classList.add('active');
     }
-    
+
     // Activate nav item
     const navItems = document.querySelectorAll('.settings-nav-item');
     navItems.forEach(item => {
-        if (item.textContent.trim().toLowerCase().includes(tabName) || 
+        if (item.textContent.trim().toLowerCase().includes(tabName) ||
             item.onclick?.toString().includes(tabName)) {
             item.classList.add('active');
         }
     });
-    
+
     // Find the correct nav item by its onclick handler
     document.querySelectorAll('.settings-nav-item').forEach(item => {
         const onclickStr = item.getAttribute('onclick');
@@ -806,11 +1127,11 @@ function applySettingsToUI() {
     // AI Model
     const modelSelect = document.getElementById('aiModelSelect');
     if (modelSelect) modelSelect.value = settingsState.aiModel;
-    
+
     // AI Provider
     const providerSelect = document.getElementById('aiProvider');
     if (providerSelect) providerSelect.value = settingsState.aiProvider;
-    
+
     // Temperature
     const tempSlider = document.getElementById('temperatureSlider');
     const tempValue = document.getElementById('temperatureValue');
@@ -818,7 +1139,7 @@ function applySettingsToUI() {
         tempSlider.value = settingsState.temperature * 100;
         if (tempValue) tempValue.textContent = settingsState.temperature;
     }
-    
+
     // Top P
     const topPSlider = document.getElementById('topPSlider');
     const topPValue = document.getElementById('topPValue');
@@ -826,15 +1147,15 @@ function applySettingsToUI() {
         topPSlider.value = settingsState.topP * 100;
         if (topPValue) topPValue.textContent = settingsState.topP;
     }
-    
+
     // Max Tokens
     const maxTokensSelect = document.getElementById('maxTokens');
     if (maxTokensSelect) maxTokensSelect.value = settingsState.maxTokens;
-    
+
     // System Prompt
     const systemPrompt = document.getElementById('systemPrompt');
     if (systemPrompt) systemPrompt.value = settingsState.systemPrompt;
-    
+
     // Toggle switches
     const toggles = {
         'autoDarkMode': settingsState.autoDarkMode,
@@ -843,16 +1164,16 @@ function applySettingsToUI() {
         'showTimestamps': settingsState.showTimestamps,
         'streamResponses': settingsState.streamResponses
     };
-    
+
     Object.entries(toggles).forEach(([id, value]) => {
         const toggle = document.getElementById(id);
         if (toggle) toggle.checked = value;
     });
-    
+
     // Timezone
     const timezoneSelect = document.getElementById('timezoneSelect');
     if (timezoneSelect) timezoneSelect.value = settingsState.timezone;
-    
+
     // Apply animations setting
     if (!settingsState.animationsEnabled) {
         document.body.classList.add('no-animations');
@@ -864,73 +1185,73 @@ function setupSettingsEventListeners() {
     // Temperature Slider
     const tempSlider = document.getElementById('temperatureSlider');
     if (tempSlider) {
-        tempSlider.addEventListener('input', function() {
+        tempSlider.addEventListener('input', function () {
             const value = (parseInt(this.value) / 100).toFixed(1);
             document.getElementById('temperatureValue').textContent = value;
             settingsState.temperature = parseFloat(value);
             saveSettings();
         });
     }
-    
+
     // Top P Slider
     const topPSlider = document.getElementById('topPSlider');
     if (topPSlider) {
-        topPSlider.addEventListener('input', function() {
+        topPSlider.addEventListener('input', function () {
             const value = (parseInt(this.value) / 100).toFixed(1);
             document.getElementById('topPValue').textContent = value;
             settingsState.topP = parseFloat(value);
             saveSettings();
         });
     }
-    
+
     // AI Model Select
     const modelSelect = document.getElementById('aiModelSelect');
     if (modelSelect) {
-        modelSelect.addEventListener('change', function() {
+        modelSelect.addEventListener('change', function () {
             settingsState.aiModel = this.value;
             saveSettings();
             showSettingsNotification('تم تغيير نموذج الذكاء الاصطناعي');
         });
     }
-    
+
     // AI Provider Select
     const providerSelect = document.getElementById('aiProvider');
     if (providerSelect) {
-        providerSelect.addEventListener('change', function() {
+        providerSelect.addEventListener('change', function () {
             settingsState.aiProvider = this.value;
             saveSettings();
             showSettingsNotification('تم تغيير مزود الخدمة');
         });
     }
-    
+
     // Max Tokens
     const maxTokensSelect = document.getElementById('maxTokens');
     if (maxTokensSelect) {
-        maxTokensSelect.addEventListener('change', function() {
+        maxTokensSelect.addEventListener('change', function () {
             settingsState.maxTokens = parseInt(this.value);
             saveSettings();
         });
     }
-    
+
     // System Prompt
     const systemPrompt = document.getElementById('systemPrompt');
     if (systemPrompt) {
-        systemPrompt.addEventListener('change', function() {
+        systemPrompt.addEventListener('change', function () {
             settingsState.systemPrompt = this.value;
             saveSettings();
             showSettingsNotification('تم تحديث تعليمات النظام');
         });
     }
-    
+
     // Timezone
     const timezoneSelect = document.getElementById('timezoneSelect');
     if (timezoneSelect) {
-        timezoneSelect.addEventListener('change', function() {
+        timezoneSelect.addEventListener('change', function () {
             settingsState.timezone = this.value;
             saveSettings();
         });
     }
-    
+
     // Toggle Switches
     setupToggleListeners();
 }
@@ -944,11 +1265,11 @@ function setupToggleListeners() {
         'showTimestamps': { key: 'showTimestamps', action: null },
         'streamResponses': { key: 'streamResponses', action: null }
     };
-    
+
     Object.entries(toggleMappings).forEach(([id, config]) => {
         const toggle = document.getElementById(id);
         if (toggle) {
-            toggle.addEventListener('change', function() {
+            toggle.addEventListener('change', function () {
                 settingsState[config.key] = this.checked;
                 saveSettings();
                 if (config.action) config.action(this.checked);
@@ -973,7 +1294,7 @@ function showSettingsNotification(message) {
     // Remove existing notification
     const existing = document.querySelector('.settings-toast');
     if (existing) existing.remove();
-    
+
     const notification = document.createElement('div');
     notification.className = 'settings-toast';
     notification.innerHTML = `
@@ -982,9 +1303,9 @@ function showSettingsNotification(message) {
         </svg>
         <span>${message}</span>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => notification.classList.add('show'), 10);
     setTimeout(() => {
         notification.classList.remove('show');
@@ -999,7 +1320,7 @@ function exportData() {
         chatSessions: chatSessions,
         exportDate: new Date().toISOString()
     };
-    
+
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1007,7 +1328,7 @@ function exportData() {
     a.download = `ai-chat-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     showSettingsNotification('تم تصدير البيانات بنجاح');
 }
 
@@ -1016,27 +1337,27 @@ function importData() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = function(e) {
+    input.onchange = function (e) {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             try {
                 const data = JSON.parse(e.target.result);
-                
+
                 if (data.settings) {
                     Object.assign(settingsState, data.settings);
                     saveSettings();
                     applySettingsToUI();
                 }
-                
+
                 if (data.chatSessions) {
                     chatSessions = data.chatSessions;
                     saveChatSessions();
                     renderChatHistory();
                 }
-                
+
                 showSettingsNotification('تم استيراد البيانات بنجاح');
             } catch (error) {
                 showSettingsNotification('فشل في قراءة الملف');
@@ -1055,12 +1376,12 @@ function clearAllData() {
         // Clear localStorage
         localStorage.removeItem('appSettings');
         localStorage.removeItem('chatSessions');
-        
+
         // Reset state
         chatSessions = [];
         conversationHistory = [];
         currentSessionId = null;
-        
+
         // Reload page
         window.location.reload();
     }
@@ -1090,7 +1411,7 @@ function resetSettings() {
             clearOnClose: false,
             timezone: 'Asia/Riyadh'
         };
-        
+
         Object.assign(settingsState, defaults);
         saveSettings();
         applySettingsToUI();
@@ -1118,14 +1439,14 @@ function toggleChatSearch() {
 function searchMessages(query) {
     const resultsCount = document.getElementById('searchResultsCount');
     const messages = document.querySelectorAll('.message .message-content');
-    
+
     clearSearchHighlights();
-    
+
     if (!query.trim()) {
         resultsCount.textContent = '';
         return;
     }
-    
+
     let count = 0;
     messages.forEach(msg => {
         const text = msg.textContent.toLowerCase();
@@ -1136,7 +1457,7 @@ function searchMessages(query) {
             msg.innerHTML = msg.textContent.replace(regex, '<mark class="search-highlight">$1</mark>');
         }
     });
-    
+
     resultsCount.textContent = count > 0 ? `${count} نتيجة` : 'لا توجد نتائج';
 }
 
@@ -1153,20 +1474,20 @@ function exportChat() {
         alert('لا توجد رسائل لتصديرها');
         return;
     }
-    
+
     const session = chatSessions.find(s => s.id === currentSessionId);
     const title = session ? session.title : 'محادثة';
-    
+
     let content = `# ${title}\n`;
     content += `التاريخ: ${new Date().toLocaleDateString('ar-SA')}\n\n`;
     content += '---\n\n';
-    
+
     conversationHistory.forEach(msg => {
         const role = msg.type === 'user' ? '👤 أنت' : '🤖 المساعد';
         const time = new Date(msg.timestamp).toLocaleTimeString('ar-SA');
         content += `**${role}** (${time}):\n${msg.text}\n\n`;
     });
-    
+
     // Create download
     const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -1187,14 +1508,14 @@ function toggleChatSettings() {
 // Handle Input Keydown
 function handleInputKeydown(event) {
     const textarea = event.target;
-    
+
     // Send on Enter (without Shift)
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         sendMessage();
         return;
     }
-    
+
     // Command detection (/)
     if (event.key === '/' && textarea.value === '') {
         showCommandMenu();
@@ -1205,7 +1526,7 @@ function handleInputKeydown(event) {
 function autoResizeTextarea(textarea) {
     textarea.style.height = 'auto';
     textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
-    
+
     // Update character count
     const charCount = document.getElementById('charCount');
     if (charCount) {
@@ -1219,12 +1540,12 @@ let recognition = null;
 
 function toggleVoiceInput() {
     const voiceBtn = document.getElementById('voiceBtn');
-    
+
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         alert('المتصفح لا يدعم الإدخال الصوتي');
         return;
     }
-    
+
     if (isRecording) {
         stopVoiceInput();
     } else {
@@ -1235,23 +1556,23 @@ function toggleVoiceInput() {
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
-    
+
     recognition.lang = document.documentElement.lang === 'ar' ? 'ar-SA' : 'en-US';
     recognition.continuous = true;
     recognition.interimResults = true;
-    
+
     const voiceBtn = document.getElementById('voiceBtn');
     const textarea = document.getElementById('messageInput');
     const statusText = document.getElementById('chatStatusText');
-    
-    recognition.onstart = function() {
+
+    recognition.onstart = function () {
         isRecording = true;
         voiceBtn.classList.add('recording');
         if (statusText) statusText.textContent = 'جارٍ الاستماع...';
         updateStatusIndicator('typing');
     };
-    
-    recognition.onresult = function(event) {
+
+    recognition.onresult = function (event) {
         let transcript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
             transcript += event.results[i][0].transcript;
@@ -1259,16 +1580,16 @@ function startVoiceInput() {
         textarea.value = transcript;
         autoResizeTextarea(textarea);
     };
-    
-    recognition.onerror = function(event) {
+
+    recognition.onerror = function (event) {
         console.error('Speech recognition error:', event.error);
         stopVoiceInput();
     };
-    
-    recognition.onend = function() {
+
+    recognition.onend = function () {
         stopVoiceInput();
     };
-    
+
     recognition.start();
 }
 
@@ -1277,10 +1598,10 @@ function stopVoiceInput() {
         recognition.stop();
     }
     isRecording = false;
-    
+
     const voiceBtn = document.getElementById('voiceBtn');
     const statusText = document.getElementById('chatStatusText');
-    
+
     voiceBtn.classList.remove('recording');
     if (statusText) statusText.textContent = 'جاهز للمساعدة';
     updateStatusIndicator('online');
@@ -1298,16 +1619,16 @@ function updateStatusIndicator(status) {
 function insertEmoji() {
     const emojis = ['😊', '👍', '🎉', '💡', '🚀', '✨', '🔥', '💪', '👏', '🙏', '❤️', '⭐'];
     const textarea = document.getElementById('messageInput');
-    
+
     // Simple emoji picker
     const picker = document.createElement('div');
     picker.className = 'emoji-picker';
     picker.innerHTML = emojis.map(e => `<button onclick="insertEmojiChar('${e}')">${e}</button>`).join('');
-    
+
     // Position and show
     const inputArea = document.querySelector('.input-container-modern');
     inputArea.appendChild(picker);
-    
+
     // Close on outside click
     setTimeout(() => {
         document.addEventListener('click', function closeEmoji(e) {
@@ -1326,7 +1647,7 @@ function insertEmojiChar(emoji) {
     textarea.value = textarea.value.substring(0, start) + emoji + textarea.value.substring(end);
     textarea.focus();
     textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-    
+
     // Remove picker
     const picker = document.querySelector('.emoji-picker');
     if (picker) picker.remove();
@@ -1341,7 +1662,7 @@ function showCommandMenu() {
         { cmd: '/help', desc: 'عرض المساعدة' },
         { cmd: '/model', desc: 'تغيير النموذج' }
     ];
-    
+
     const menu = document.createElement('div');
     menu.className = 'command-menu';
     menu.innerHTML = commands.map(c => `
@@ -1350,10 +1671,10 @@ function showCommandMenu() {
             <span class="command-desc">${c.desc}</span>
         </button>
     `).join('');
-    
+
     const inputArea = document.querySelector('.input-container-modern');
     inputArea.appendChild(menu);
-    
+
     // Close on escape or outside click
     function closeMenu(e) {
         if (e.key === 'Escape' || (e.type === 'click' && !menu.contains(e.target))) {
@@ -1362,7 +1683,7 @@ function showCommandMenu() {
             document.removeEventListener('click', closeMenu);
         }
     }
-    
+
     setTimeout(() => {
         document.addEventListener('keydown', closeMenu);
         document.addEventListener('click', closeMenu);
@@ -1372,8 +1693,8 @@ function showCommandMenu() {
 function executeCommand(cmd) {
     const textarea = document.getElementById('messageInput');
     textarea.value = '';
-    
-    switch(cmd) {
+
+    switch (cmd) {
         case '/clear':
             if (confirm('مسح المحادثة الحالية؟')) {
                 conversationHistory = [];
@@ -1399,7 +1720,7 @@ function executeCommand(cmd) {
             setTimeout(() => showSettingsTab('ai'), 100);
             break;
     }
-    
+
     // Remove menu
     const menu = document.querySelector('.command-menu');
     if (menu) menu.remove();
@@ -1409,39 +1730,39 @@ function executeCommand(cmd) {
 function addMessageToDOM(text, type, timestamp = null) {
     const container = document.getElementById('chatMessages');
     if (!container) return;
-    
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
-    
+
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
     avatar.textContent = type === 'user' ? 'أ' : 'AI';
-    
+
     const contentWrapper = document.createElement('div');
     contentWrapper.className = 'message-content-wrapper';
-    
+
     const content = document.createElement('div');
     content.className = 'message-content';
-    
+
     // Parse markdown if enabled
     if (settingsState?.markdownEnabled) {
         content.innerHTML = parseMarkdown(text);
     } else {
         content.textContent = text;
     }
-    
+
     contentWrapper.appendChild(content);
-    
+
     // Add timestamp if enabled
     if (settingsState?.showTimestamps) {
         const time = document.createElement('div');
         time.className = 'message-time';
-        time.textContent = timestamp ? 
+        time.textContent = timestamp ?
             new Date(timestamp).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) :
             new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
         contentWrapper.appendChild(time);
     }
-    
+
     // Add actions for bot messages
     if (type === 'bot') {
         const actions = document.createElement('div');
@@ -1464,11 +1785,11 @@ function addMessageToDOM(text, type, timestamp = null) {
         `;
         contentWrapper.appendChild(actions);
     }
-    
+
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(contentWrapper);
     container.appendChild(messageDiv);
-    
+
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
 }
@@ -1478,17 +1799,17 @@ function parseMarkdown(text) {
     // Code blocks
     text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>');
     text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
+
     // Bold and Italic
     text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    
+
     // Links
     text = text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
-    
+
     // Line breaks
     text = text.replace(/\n/g, '<br>');
-    
+
     return text;
 }
 
@@ -1496,7 +1817,7 @@ function parseMarkdown(text) {
 function copyMessage(btn) {
     const content = btn.closest('.message-content-wrapper').querySelector('.message-content');
     const text = content.textContent || content.innerText;
-    
+
     navigator.clipboard.writeText(text).then(() => {
         const originalText = btn.innerHTML;
         btn.innerHTML = `
@@ -1514,20 +1835,20 @@ function copyMessage(btn) {
 // Regenerate Message
 function regenerateMessage() {
     if (conversationHistory.length < 2) return;
-    
+
     // Remove last bot message
     conversationHistory.pop();
     const lastUserMsg = conversationHistory[conversationHistory.length - 1];
-    
+
     // Remove last message from DOM
     const messages = document.querySelectorAll('.message');
     if (messages.length > 0) {
         messages[messages.length - 1].remove();
     }
-    
+
     // Resend
     showTypingIndicator();
-    
+
     fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1536,17 +1857,17 @@ function regenerateMessage() {
             session_id: currentSessionId
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        hideTypingIndicator();
-        if (data.response) {
-            addMessage(data.response, 'bot');
-        }
-    })
-    .catch(error => {
-        hideTypingIndicator();
-        console.error('Error:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            hideTypingIndicator();
+            if (data.response) {
+                addMessage(data.response, 'bot');
+            }
+        })
+        .catch(error => {
+            hideTypingIndicator();
+            console.error('Error:', error);
+        });
 }
 
 // File Attachment Handler
@@ -1557,37 +1878,37 @@ function attachFile() {
     input.type = 'file';
     input.accept = 'image/*,.pdf,.doc,.docx,.txt,.csv,.json';
     input.multiple = true;
-    
-    input.onchange = function(e) {
+
+    input.onchange = function (e) {
         const files = Array.from(e.target.files);
         files.forEach(file => {
             if (file.size > 10 * 1024 * 1024) {
                 alert(`الملف ${file.name} أكبر من 10MB`);
                 return;
             }
-            
+
             attachedFiles.push(file);
             displayAttachment(file);
         });
     };
-    
+
     input.click();
 }
 
 function displayAttachment(file) {
     const preview = document.getElementById('attachmentsPreview');
     const list = document.getElementById('attachmentsList');
-    
+
     preview.style.display = 'block';
-    
+
     const item = document.createElement('div');
     item.className = 'attachment-item';
-    
+
     let icon = '📄';
     if (file.type.startsWith('image/')) icon = '🖼️';
     else if (file.type === 'application/pdf') icon = '📕';
     else if (file.type.includes('word')) icon = '📘';
-    
+
     item.innerHTML = `
         <span>${icon}</span>
         <span>${file.name}</span>
@@ -1597,14 +1918,14 @@ function displayAttachment(file) {
             </svg>
         </button>
     `;
-    
+
     list.appendChild(item);
 }
 
 function removeAttachment(fileName, btn) {
     attachedFiles = attachedFiles.filter(f => f.name !== fileName);
     btn.parentElement.remove();
-    
+
     if (attachedFiles.length === 0) {
         document.getElementById('attachmentsPreview').style.display = 'none';
     }
@@ -1622,3 +1943,51 @@ if (chatSessions.length === 0) {
 // Initialize settings
 initSettings();
 
+// ============ Sidebar Toggle Functions ============
+
+/**
+ * Toggle between History and Filters view in sidebar
+ * @param {string} view - 'history' or 'filters'
+ */
+function toggleSidebarView(view) {
+    const historyPanel = document.querySelector('.chat-history');
+    const filtersPanel = document.querySelector('.filters-panel');
+    const historyBtn = document.querySelector('[data-view="history"]');
+    const filtersBtn = document.querySelector('[data-view="filters"]');
+
+    if (!historyPanel || !filtersPanel || !historyBtn || !filtersBtn) return;
+
+    if (view === 'history') {
+        // Show history, hide filters
+        historyPanel.style.display = 'flex';
+        filtersPanel.style.display = 'none';
+        historyBtn.classList.add('active');
+        filtersBtn.classList.remove('active');
+    } else if (view === 'filters') {
+        // Show filters, hide history
+        historyPanel.style.display = 'none';
+        filtersPanel.style.display = 'flex';
+        historyBtn.classList.remove('active');
+        filtersBtn.classList.add('active');
+    }
+}
+
+/**
+ * Filter entity cards based on search term
+ * @param {string} searchTerm - Search query
+ */
+function filterEntities(searchTerm) {
+    const cards = document.querySelectorAll('.entity-card');
+    const term = searchTerm.toLowerCase().trim();
+
+    cards.forEach(card => {
+        const entityName = card.getAttribute('data-entity-name');
+        if (!entityName) return;
+
+        if (entityName.toLowerCase().includes(term)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}

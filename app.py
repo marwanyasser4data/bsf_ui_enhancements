@@ -72,6 +72,14 @@ def load_theme_settings():
             'ai_badge_bg': '#00A651'
         },
         'font': 'Cairo',
+        'app_name': {
+            'ar': 'نموذج الذكاء الاصطناعي للبيانات',
+            'en': 'DataScience LLM Chat Model'
+        },
+        'chat_header_title': {
+            'ar': 'مساعد الذكاء الاصطناعي',
+            'en': 'AI Assistant'
+        },
         'logo': {
             'type': 'text',
             'text': 'DS',
@@ -174,10 +182,8 @@ def admin_required(f):
 # Routes
 @app.route('/login')
 def login_page():
-    """Render login page"""
-    if 'username' in session:
-        return redirect(url_for('index'))
-    return render_template('login.html')
+    """Redirect to main page - auto-login enabled"""
+    return redirect(url_for('index'))
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -217,7 +223,6 @@ def logout():
     return redirect(url_for('login_page'))
 
 @app.route('/set_language', methods=['POST'])
-@login_required
 def set_language():
     """Set user language preference"""
     try:
@@ -231,9 +236,15 @@ def set_language():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/')
-@login_required
 def index():
     """Render main desktop page"""
+    # Auto-login as admin for SaaS integration
+    if 'username' not in session:
+        session['username'] = 'admin'
+        session['role'] = 'admin'
+        session['user_display_name'] = 'Administrator'
+        session['language'] = 'en'
+    
     if 'session_key' not in session:
         session['session_key'] = str(uuid.uuid4())
     
@@ -253,8 +264,36 @@ def index():
     
     return render_template('desktop.html', lang=lang, theme=theme, theme_settings=theme_settings, user_role=user_role, timestamp=int(datetime.now().timestamp()))
 
+@app.route('/dashboard')
+def dashboard():
+    """Render dashboard page without widgets"""
+    # Auto-login as admin for SaaS integration
+    if 'username' not in session:
+        session['username'] = 'admin'
+        session['role'] = 'admin'
+        session['user_display_name'] = 'Administrator'
+        session['language'] = 'en'
+    
+    if 'session_key' not in session:
+        session['session_key'] = str(uuid.uuid4())
+    
+    if 'user_id' not in session:
+        session['user_id'] = str(uuid.uuid4())
+    
+    user_id = session['user_id']
+    if user_id not in chat_sessions:
+        chat_sessions[user_id] = []
+    
+    lang = request.args.get('lang', session.get('language', 'en'))
+    session['language'] = lang
+    
+    theme = get_current_theme()
+    theme_settings = load_theme_settings()
+    user_role = session.get('role', 'user')
+    
+    return render_template('dashboard.html', lang=lang, theme=theme, theme_settings=theme_settings, user_role=user_role, timestamp=int(datetime.now().timestamp()))
+
 @app.route('/chat', methods=['POST'])
-@login_required
 def chat():
     """Handle chat messages"""
     try:
@@ -274,7 +313,8 @@ def chat():
         response = ""
         for chunk in chat_agent.generate_response(message, session_key):
             if chunk:
-                response = chunk
+                # Since its the chat endpoint not the stream-chat!
+                response += chunk
         
         if user_id:
             if current_session_id:
@@ -316,37 +356,58 @@ def chat():
         error_msg = f'حدث خطأ: {str(e)}' if lang == 'ar' else f'Error: {str(e)}'
         return jsonify({'error': error_msg}), 500
 
-@app.route('/stream-chat', methods=['POST'])
-@login_required
+@app.route('/stream-chat', methods=['POST', 'GET'])
 def stream_chat():
     """Handle streaming chat messages"""
     try:
         from flask import Response, stream_with_context
         
-        data = request.get_json()
-        message = data.get('message', '')
+        # Support both POST and GET (for EventSource)
+        if request.method == 'GET':
+            message = request.args.get('message', '')
+            session_id = request.args.get('session_id', '')
+        else:
+            data = request.get_json()
+            message = data.get('message', '')
+            session_id = data.get('session_id', '')
         
         if not message:
-            return jsonify({'error': 'الرجاء إدخال رسالة'}), 400
+            lang = session.get('language', 'ar')
+            error_msg = 'الرجاء إدخال رسالة' if lang == 'ar' else 'Please enter a message'
+            return jsonify({'error': error_msg}), 400
         
-        session_key = session.get('session_key', str(uuid.uuid4()))
-        session['session_key'] = session_key
+        # Use session_id from frontend if provided, otherwise use/create Flask session key
+        if session_id:
+            session_key = session_id
+        else:
+            session_key = session.get('session_key', str(uuid.uuid4()))
+            session['session_key'] = session_key
         
         def generate():
             for chunk in chat_agent.generate_response(message, session_key):
                 if chunk:
-                    yield f"data: {chunk}\n\n"
+                    # JSON encode the chunk to properly escape newlines and special characters
+                    import json
+                    encoded_chunk = json.dumps(chunk, ensure_ascii=False)
+                    yield f"data: {encoded_chunk}\n\n"
+            
+            yield "event: end\ndata: complete\n\n"
         
         return Response(
             stream_with_context(generate()),
-            mimetype='text/event-stream'
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no'
+            }
         )
     
     except Exception as e:
-        return jsonify({'error': f'حدث خطأ: {str(e)}'}), 500
+        lang = session.get('language', 'ar')
+        error_msg = f'حدث خطأ: {str(e)}' if lang == 'ar' else f'Error: {str(e)}'
+        return jsonify({'error': error_msg}), 500
 
 @app.route('/new-session', methods=['POST'])
-@login_required
 def new_session():
     """Create new chat session"""
     session['session_key'] = str(uuid.uuid4())
@@ -356,7 +417,6 @@ def new_session():
     })
 
 @app.route('/get-history', methods=['GET'])
-@login_required
 def get_history():
     """Get all chat sessions for current user"""
     user_id = session.get('user_id')
@@ -376,7 +436,7 @@ def get_history():
     return jsonify({'sessions': sessions_summary})
 
 @app.route('/get-session/<session_id>', methods=['GET'])
-@login_required
+@app.route('/get-session/<session_id>', methods=['GET'])
 def get_session(session_id):
     """Get full session data"""
     user_id = session.get('user_id')
@@ -390,7 +450,7 @@ def get_session(session_id):
     return jsonify({'error': 'Session not found'}), 404
 
 @app.route('/delete-session/<session_id>', methods=['DELETE'])
-@login_required
+@app.route('/delete-session/<session_id>', methods=['DELETE'])
 def delete_session(session_id):
     """Delete a chat session"""
     user_id = session.get('user_id')
@@ -405,7 +465,7 @@ def delete_session(session_id):
     return jsonify({'error': 'Session not found'}), 404
 
 @app.route('/clear-all-history', methods=['POST'])
-@login_required
+@app.route('/clear-history', methods=['POST'])
 def clear_all_history():
     """Clear all chat history for current user"""
     user_id = session.get('user_id')
@@ -668,6 +728,465 @@ def upload_background():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Filter Wizard API Endpoints
+@app.route('/api/filter/domains', methods=['GET'])
+def get_filter_domains():
+    """Get all domains for filter wizard from database via MCP"""
+    try:
+        import requests
+        
+        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
+        
+        def call_execute_sql(sql, req_id=1):
+            payload = {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "method": "tools/call",
+                "params": {
+                    "name": "execute_sql_query",
+                    "arguments": {
+                        "sql_query": sql
+                    }
+                }
+            }
+            r = requests.post(MCP_URL, json=payload, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        
+        # Initialize MCP (if needed)
+        try:
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {}
+            }, timeout=10)
+            
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized"
+            }, timeout=10)
+        except:
+            pass  # MCP might already be initialized
+        
+        # Execute SQL query via MCP
+        sql_query = "SELECT domain_id, domain_nm, domain_description_txt FROM svi_alerts.tdc_domain"
+        result = call_execute_sql(sql_query, req_id=10)
+        
+        # Parse the result
+        if result and "result" in result and "content" in result["result"]:
+            result_text = result["result"]["content"][0]["text"]
+            
+            # Parse the text result (assuming it's in a parseable format)
+            import json
+            try:
+                # Try to parse as JSON
+                domains_data = json.loads(result_text)
+            except:
+                # If not JSON, try to parse as table format
+                domains_data = []
+                lines = result_text.strip().split('\n')
+                for line in lines[1:]:  # Skip header
+                    if line.strip():
+                        parts = [p.strip() for p in line.split('|')]
+                        if len(parts) >= 3:
+                            domains_data.append({
+                                'domain_id': parts[0],
+                                'domain_nm': parts[1],
+                                'domain_description_txt': parts[2] if len(parts) > 2 else ''
+                            })
+            
+            # Transform data to match frontend format
+            result_list = []
+            for domain in domains_data:
+                result_list.append({
+                    'value': domain.get('domain_id', ''),
+                    'title': domain.get('domain_nm', ''),
+                    'description': domain.get('domain_description_txt', '') if domain.get('domain_description_txt') else 'No description available',
+                    'id': domain.get('domain_id', '')
+                })
+            
+            return jsonify({'success': True, 'domains': result_list})
+        else:
+            return jsonify({'success': False, 'error': 'No data returned from MCP'}), 500
+        
+    except Exception as e:
+        print(f"Error fetching domains via MCP: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/filter/strategies', methods=['GET'])
+def get_filter_strategies():
+    """Get strategies for filter wizard Step 2 based on selected domain_id"""
+    try:
+        import requests
+        
+        # Get domain_id from query parameters
+        domain_id = request.args.get('domain_id')
+        print(f"🔍 Received domain_id parameter: {domain_id}")
+        
+        if not domain_id:
+            print("❌ No domain_id provided!")
+            return jsonify({'success': False, 'error': 'domain_id is required'}), 400
+        
+        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
+        
+        def call_execute_sql(sql, req_id=1):
+            payload = {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "method": "tools/call",
+                "params": {
+                    "name": "execute_sql_query",
+                    "arguments": {
+                        "sql_query": sql
+                    }
+                }
+            }
+            r = requests.post(MCP_URL, json=payload, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        
+        # Initialize MCP (if needed)
+        try:
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {}
+            }, timeout=10)
+            
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized"
+            }, timeout=10)
+        except:
+            pass  # MCP might already be initialized
+        
+        
+        # Execute SQL query via MCP with domain_id parameter
+        sql_query = f"SELECT strategy_id, strategy_nm, strategy_description_txt FROM svi_alerts.tdc_strategy WHERE domain_id='{domain_id}'"
+        print(f"🔍 Executing SQL query: {sql_query}")
+        result = call_execute_sql(sql_query, req_id=20)
+        print(f"🔍 MCP Result: {result}")
+        
+        # Parse the result
+        if result and "result" in result and "content" in result["result"]:
+            result_text = result["result"]["content"][0]["text"]
+            
+            # Parse the text result
+            import json
+            try:
+                # Try to parse as JSON
+                strategies_data = json.loads(result_text)
+            except:
+                # If not JSON, try to parse as table format
+                strategies_data = []
+                lines = result_text.strip().split('\n')
+                for line in lines[1:]:  # Skip header
+                    if line.strip():
+                        parts = [p.strip() for p in line.split('|')]
+                        if len(parts) >= 3:
+                            strategies_data.append({
+                                'strategy_id': parts[0],
+                                'strategy_nm': parts[1],
+                                'strategy_description_txt': parts[2] if len(parts) > 2 else ''
+                            })
+            
+            # Transform data to match frontend format
+            result_list = []
+            for strategy in strategies_data:
+                result_list.append({
+                    'value': strategy.get('strategy_id', ''),
+                    'title': strategy.get('strategy_nm', ''),
+                    'description': strategy.get('strategy_description_txt', '') if strategy.get('strategy_description_txt') else 'No description available',
+                    'id': strategy.get('strategy_id', '')
+                })
+            
+            return jsonify({'success': True, 'strategies': result_list})
+        else:
+            return jsonify({'success': False, 'error': 'No data returned from MCP'}), 500
+        
+    except Exception as e:
+        print(f"Error fetching strategies via MCP: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/filter/alerts', methods=['GET'])
+def get_filter_alerts():
+    """Get alerts for filter wizard Step 3 based on domain_id and strategy_id"""
+    try:
+        import requests
+        
+        # Get parameters from query
+        domain_id = request.args.get('domain_id')
+        strategy_id = request.args.get('strategy_id')
+        
+        print(f"🔍 Received parameters - domain_id: {domain_id}, strategy_id: {strategy_id}")
+        
+        if not domain_id or not strategy_id:
+            print("❌ Missing required parameters!")
+            return jsonify({'success': False, 'error': 'domain_id and strategy_id are required'}), 400
+        
+        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
+        
+        def call_execute_sql(sql, req_id=1):
+            payload = {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "method": "tools/call",
+                "params": {
+                    "name": "execute_sql_query",
+                    "arguments": {
+                        "sql_query": sql
+                    }
+                }
+            }
+            r = requests.post(MCP_URL, json=payload, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        
+        # Initialize MCP (if needed)
+        try:
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {}
+            }, timeout=10)
+            
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized"
+            }, timeout=10)
+        except:
+            pass  # MCP might already be initialized
+        
+        # Execute specific SQL query via MCP
+        sql_query = f"""
+        SELECT actionable_entity_id, actionable_entity_nm, ta.alert_id, case_status, alert_status_id 
+        FROM svi_alerts.tdc_alert ta
+        JOIN fdhdata.tm_cases tc 
+            ON ta.alert_id = tc.alert_id
+        WHERE ta.domain_id = '{domain_id}'
+          AND alert_status_id = 'ACTIVE'
+          AND ta.queue_id IN (
+              SELECT queue_id
+              FROM svi_alerts.tdc_queue
+              WHERE domain_id = '{domain_id}'
+                AND strategy_id = '{strategy_id}'
+          )
+        """
+        
+        print(f"🔍 Executing SQL query: {sql_query}")
+        result = call_execute_sql(sql_query, req_id=30)
+        print(f"🔍 MCP Result received")
+        
+        # Parse the result
+        if result and "result" in result and "content" in result["result"]:
+            result_text = result["result"]["content"][0]["text"]
+            print(f"🔍 Raw result text (first 500 chars): {result_text[:500]}")
+            
+            # Parse the text result as table format
+            import json
+            alerts_data = []
+            
+            try:
+                # Try to parse as JSON first
+                alerts_data = json.loads(result_text)
+                print(f"✅ Parsed as JSON, found {len(alerts_data)} alerts")
+            except:
+                # Parse as table format
+                print("📋 Parsing as table format...")
+                lines = result_text.strip().split('\n')
+                
+                if len(lines) > 1:
+                    # First line is header
+                    headers = [h.strip() for h in lines[0].split('|')]
+                    print(f"📋 Headers: {headers}")
+                    
+                    # Rest are data rows
+                    for line in lines[1:]:
+                        if line.strip():
+                            values = [v.strip() for v in line.split('|')]
+                            if len(values) >= len(headers):
+                                row_dict = {}
+                                for i, header in enumerate(headers):
+                                    row_dict[header] = values[i] if i < len(values) else ''
+                                alerts_data.append(row_dict)
+                    
+                    print(f"✅ Parsed {len(alerts_data)} alerts from table")
+            
+            # Transform data to match frontend format
+            result_list = []
+            if isinstance(alerts_data, list) and len(alerts_data) > 0:
+                for alert in alerts_data[:10]:  # Limit to first 10 for display
+                    alert_id = alert.get('alert_id', 'N/A')
+                    entity_id = alert.get('actionable_entity_id', 'N/A')
+                    entity_name = alert.get('actionable_entity_nm', entity_id)
+                    case_status = alert.get('case_status', 'N/A')
+                    alert_status = alert.get('alert_status_id', 'N/A')
+                    
+                    # Build description with available info
+                    description_parts = []
+                    description_parts.append(f"Alert: {alert_id}")
+                    if case_status != 'N/A':
+                        description_parts.append(f"Case Status: {case_status}")
+                    if alert_status != 'N/A':
+                        description_parts.append(f"Alert Status: {alert_status}")
+                    if entity_id != 'N/A':
+                        description_parts.append(f"Entity ID: {entity_id}")
+                    
+                    description = " | ".join(description_parts)
+                    
+                    # Use entity name as title
+                    title = entity_name if entity_name != entity_id else f"Entity {entity_id}"
+                    
+                    result_list.append({
+                        'value': alert_id,
+                        'title': title,
+                        'description': description,
+                        'id': alert_id,
+                        'entity_id': entity_id,
+                        'entity_name': entity_name,
+                        'case_status': case_status,
+                        'alert_status': alert_status
+                    })
+                
+                print(f"✅ Transformed {len(result_list)} alerts for frontend")
+            
+            return jsonify({
+                'success': True, 
+                'alerts': result_list, 
+                'total': len(alerts_data)
+            })
+        else:
+            return jsonify({'success': False, 'error': 'No data returned from MCP'}), 500
+        
+    except Exception as e:
+        print(f"Error fetching alerts via MCP: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/filter/execute-final-query', methods=['POST'])
+def execute_final_query():
+    """Execute final query and return investigator prompt with results"""
+    try:
+        import requests
+        
+        # Get parameters from request body
+        data = request.get_json()
+        domain_id = data.get('domain_id')
+        strategy_id = data.get('strategy_id')
+        alert_id = data.get('alert_id')
+        
+        print(f"🔍 Executing final query with: domain_id={domain_id}, strategy_id={strategy_id}, alert_id={alert_id}")
+        
+        if not domain_id or not strategy_id or not alert_id:
+            return jsonify({'success': False, 'error': 'Missing required parameters'}), 400
+        
+        MCP_URL = "https://nonabusively-oxlike-roy.ngrok-free.dev/mcp"
+        
+        def call_execute_sql(sql, req_id=1):
+            payload = {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "method": "tools/call",
+                "params": {
+                    "name": "execute_sql_query",
+                    "arguments": {
+                        "sql_query": sql
+                    }
+                }
+            }
+            r = requests.post(MCP_URL, json=payload, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        
+        # Initialize MCP
+        try:
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {}
+            }, timeout=10)
+            
+            requests.post(MCP_URL, json={
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized"
+            }, timeout=10)
+        except:
+            pass
+        
+        # Build and execute final query
+        final_query = f"""SELECT *
+FROM svi_alerts.tdc_alert ta
+JOIN fdhdata.tm_cases tc 
+    ON ta.alert_id = tc.alert_id
+WHERE ta.domain_id = '{domain_id}'
+  AND alert_status_id = 'ACTIVE'
+  AND ta.alert_id = '{alert_id}'
+  AND ta.queue_id IN (
+      SELECT queue_id
+      FROM svi_alerts.tdc_queue
+      WHERE domain_id = '{domain_id}'
+        AND strategy_id = '{strategy_id}'
+  )"""
+        
+        print(f"🔍 Executing query: {final_query}")
+        result = call_execute_sql(final_query, req_id=100)
+        
+        # Parse result
+        if result and "result" in result and "content" in result["result"]:
+            result_text = result["result"]["content"][0]["text"]
+            print(f"✅ Query executed successfully, result length: {len(result_text)}")
+            
+            # Build investigator prompt
+            investigator_prompt = f"""STARTING_DATA_ROWS = 
+{result_text}
+
+Task:
+You have been provided with STARTING_DATA_ROWS as an initial set of information about alerts and associated cases.
+
+Instructions:
+1. Treat STARTING_DATA_ROWS as a factual starting point.
+2. Use your MCP tools to enrich the investigation where needed, including:
+   - Retrieving additional information on the actionable entity or related parties.
+   - Exploring related alerts, cases, accounts, transactions, or risk scores.
+   - Accessing associated documents, narratives, and any available metadata.
+3. Analyze all information to generate a **deep, investigator-ready case narrative**:
+   - Identify patterns, unusual relationships, or key insights.
+   - Summarize the context, involved entities, alerts, transactions, and case status.
+   - Highlight observations relevant for regulatory review and audit defensibility.
+4. If data is missing or unavailable, explicitly note it in the narrative.
+
+Requirements:
+- Only use factual data retrieved via MCP tools or provided in STARTING_DATA_ROWS.
+- Do not speculate or invent information.
+- Produce the narrative as **HTML tables**, following the system prompt formatting rules.
+
+Goal:
+Provide a thorough, regulator-ready case narrative that combines the initial query output with any relevant information available through your tools, enabling an AML investigator to understand the case and make informed decisions."""
+            
+            return jsonify({
+                'success': True,
+                'prompt': investigator_prompt,
+                'query': final_query,
+                'result_preview': result_text[:500]
+            })
+        else:
+            return jsonify({'success': False, 'error': 'No data returned from query'}), 500
+            
+    except Exception as e:
+        print(f"Error executing final query: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 def hex_to_rgba(hex_color, opacity=1.0):
     """Convert hex color to rgba"""
     hex_color = hex_color.lstrip('#')
@@ -683,8 +1202,16 @@ def hex_to_rgba(hex_color, opacity=1.0):
 def custom_theme_css():
     theme = load_theme_settings()
     colors = theme.get('colors', {})
+    opacity = theme.get('opacity', {})
     font = theme.get('font', 'Cairo')
     background_image = theme.get('background_image', '')
+    
+    # Get opacity values (convert from 0-100 to 0-1)
+    # Note: 0% = no transparency (solid), 100% = full transparency
+    sidebar_opacity = 1 - (opacity.get('sidebar', 0) / 100)
+    background_opacity = 1 - (opacity.get('background', 0) / 100)
+    widget_opacity = 1 - (opacity.get('widget', 0) / 100)
+    chat_msg_opacity = 1 - (opacity.get('chat_msg', 0) / 100)
     
     # Get background color and create rgba version for glass effect
     bg_color = colors.get('background', '#F5F7FA')
@@ -707,10 +1234,10 @@ def custom_theme_css():
         /* Background Colors */
         --color-background: {bg_color};
         --bg-color: {bg_color};
-        --glass-bg: {hex_to_rgba(bg_color, 0.15)};
+        --glass-bg: {hex_to_rgba(bg_color, background_opacity)};
         
         /* Sidebar */
-        --color-sidebar: {hex_to_rgba(sidebar_color, 0.2)};
+        --color-sidebar: {hex_to_rgba(sidebar_color, sidebar_opacity)};
         --color-sidebar-text: {colors.get('sidebar_text', '#1A1D1F')};
         
         /* Text Colors */
@@ -720,8 +1247,8 @@ def custom_theme_css():
         --text-secondary: {colors.get('text_secondary', '#6F7782')};
         
         /* Message Colors */
-        --user-message-bg: {hex_to_rgba(colors.get('user_msg_bg', '#F0F4F8'), 0.4)};
-        --bot-message-bg: {hex_to_rgba(colors.get('bot_msg_bg', '#FFFFFF'), 0.3)};
+        --user-message-bg: {hex_to_rgba(colors.get('user_msg_bg', '#F0F4F8'), chat_msg_opacity)};
+        --bot-message-bg: {hex_to_rgba(colors.get('bot_msg_bg', '#FFFFFF'), chat_msg_opacity)};
         --ai-badge-bg: {colors.get('ai_badge_bg', '#00A651')};
         
         /* App Title Color */
@@ -731,8 +1258,8 @@ def custom_theme_css():
         --taskbar-icons-color: {colors.get('taskbar_icons_color', '#FFFFFF')};
         
         /* Widget Colors */
-        --header-bar-bg-color: {colors.get('header_bar_bg_color', '#19192D')};
-        --widget-bg-color: {colors.get('widget_bg_color', '#1E1E32')};
+        --header-bar-bg-color: {hex_to_rgba(colors.get('header_bar_bg_color', '#19192D'), widget_opacity)};
+        --widget-bg-color: {hex_to_rgba(colors.get('widget_bg_color', '#1E1E32'), widget_opacity)};
         --widget-border-color: {colors.get('widget_border_color', '#FFFFFF')};
         --widget-title-color: {colors.get('widget_title_color', '#FFFFFF')};
         --widget-text-color: {colors.get('widget_text_color', '#CCCCCC')};
@@ -740,6 +1267,12 @@ def custom_theme_css():
         --widget-icon-chat: {colors.get('widget_icon_chat', '#0078D4')};
         --widget-icon-system: {colors.get('widget_icon_system', '#00A651')};
         --widget-icon-actions: {colors.get('widget_icon_actions', '#FF6B6B')};
+        
+        /* Opacity values */
+        --sidebar-opacity: {sidebar_opacity};
+        --background-opacity: {background_opacity};
+        --widget-opacity: {widget_opacity};
+        --chat-msg-opacity: {chat_msg_opacity};
         
         /* Font */
         --font-primary: '{font}', sans-serif;
@@ -769,30 +1302,30 @@ def custom_theme_css():
     
     /* Windows Glass Effect - More Transparent */
     .app-window {{
-        background: {hex_to_rgba(bg_color, 0.25)} !important;
-        backdrop-filter: blur(40px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+        background: {hex_to_rgba(bg_color, background_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {background_opacity}) * 40px)) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {background_opacity}) * 40px)) saturate(180%) !important;
     }}
     
     /* Chat Sidebar - Glass Effect */
     .chat-sidebar {{
-        background: {hex_to_rgba(sidebar_color, 0.2)} !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
+        background: {hex_to_rgba(sidebar_color, sidebar_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {sidebar_opacity}) * 20px)) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {sidebar_opacity}) * 20px)) !important;
     }}
     
     /* Chat Main Area - Glass Effect */
     .chat-main {{
-        background: {hex_to_rgba(bg_color, 0.1)} !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
+        background: {hex_to_rgba(bg_color, background_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {background_opacity}) * 10px)) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {background_opacity}) * 10px)) !important;
     }}
     
     /* Window Header */
     .window-header {{
-        background: {hex_to_rgba(sidebar_color, 0.15)} !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
+        background: {hex_to_rgba(sidebar_color, sidebar_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {sidebar_opacity}) * 10px)) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {sidebar_opacity}) * 10px)) !important;
     }}
     
     /* Taskbar - Glass Effect */
@@ -803,7 +1336,7 @@ def custom_theme_css():
     }}
     
     .taskbar-center {{
-        background: {hex_to_rgba(sidebar_color, 0.15)} !important;
+        background: rgba(27, 66, 151, 0.9) !important;
     }}
     
     /* Taskbar Icons */
@@ -830,7 +1363,7 @@ def custom_theme_css():
     /* Buttons */
     .new-chat-btn,
     .send-btn {{
-        background: linear-gradient(135deg, {colors.get('primary', '#00A651')}, {colors.get('primary_dark', '#008542')}) !important;
+        background: white;
     }}
     
     .new-chat-btn:hover,
@@ -840,9 +1373,9 @@ def custom_theme_css():
     
     /* Start Menu - Glass Effect */
     .start-menu {{
-        background: {hex_to_rgba(bg_color, 0.25)} !important;
-        backdrop-filter: blur(50px) saturate(200%) !important;
-        -webkit-backdrop-filter: blur(50px) saturate(200%) !important;
+        background: {hex_to_rgba(bg_color, background_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {background_opacity}) * 50px)) saturate(200%) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {background_opacity}) * 50px)) saturate(200%) !important;
     }}
     
     .start-btn:hover {{
@@ -851,9 +1384,9 @@ def custom_theme_css():
     
     /* User Dropdown - Glass Effect */
     .user-dropdown {{
-        background: {hex_to_rgba(bg_color, 0.25)} !important;
-        backdrop-filter: blur(50px) saturate(200%) !important;
-        -webkit-backdrop-filter: blur(50px) saturate(200%) !important;
+        background: {hex_to_rgba(bg_color, background_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {background_opacity}) * 50px)) saturate(200%) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {background_opacity}) * 50px)) saturate(200%) !important;
     }}
     
     /* User Avatar */
@@ -875,32 +1408,31 @@ def custom_theme_css():
     
     /* Input Wrapper - Glass Effect */
     .input-wrapper {{
-        background: {hex_to_rgba(bg_color, 0.2)} !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
+        background: {hex_to_rgba(bg_color, background_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {background_opacity}) * 10px)) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {background_opacity}) * 10px)) !important;
     }}
     
     /* Quick Actions - Glass Effect */
     .quick-action {{
-        background: {hex_to_rgba(sidebar_color, 0.2)} !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
+        background: {hex_to_rgba(sidebar_color, sidebar_opacity)} !important;
+        backdrop-filter: blur(calc((1 - {sidebar_opacity}) * 10px)) !important;
+        -webkit-backdrop-filter: blur(calc((1 - {sidebar_opacity}) * 10px)) !important;
     }}
     
     /* Suggestions - Glass Effect */
     .suggestion {{
-        background: {hex_to_rgba(bg_color, 0.15)} !important;
+        background: {hex_to_rgba(bg_color, background_opacity)} !important;
     }}
     
     /* Header Bar Styling */
     .top-header-bar {{
-        background: {hex_to_rgba(colors.get('header_bar_bg_color', '#19192D'), 0.45)} !important;
+        background: {hex_to_rgba(colors.get('header_bar_bg_color', '#19192D'), widget_opacity)} !important;
     }}
     
     /* Desktop Widgets Styling */
     .desktop-widget {{
-        background: {hex_to_rgba(colors.get('widget_bg_color', '#1E1E32'), 0.4)} !important;
-        border-color: {hex_to_rgba(colors.get('widget_border_color', '#FFFFFF'), 0.2)} !important;
+        border-color: {hex_to_rgba(colors.get('widget_border_color', '#FFFFFF'), widget_opacity)} !important;
     }}
     
     .widget-title {{
@@ -936,7 +1468,7 @@ def custom_theme_css():
     
     /* Legacy Main Content */
     .main-content {{
-        background: {hex_to_rgba(bg_color, 0.2)} !important;
+        background: {hex_to_rgba(bg_color, background_opacity)} !important;
     }}
     
     .vr-background {{
@@ -1281,4 +1813,5 @@ def get_active_widgets():
     return jsonify({'widgets': active_widgets})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=True, port=5000)
+

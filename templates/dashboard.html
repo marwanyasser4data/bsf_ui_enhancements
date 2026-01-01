@@ -8,9 +8,8 @@
         Assistant' }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='desktop.css') }}?v={{ timestamp }}">
     <link rel="stylesheet" href="/custom-theme.css?v={{ timestamp }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='filter-wizard.css') }}?v={{ timestamp }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar-wizard.css') }}?v={{ timestamp }}">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -23,271 +22,222 @@
 
     <!-- Desktop Container -->
     <div class="desktop-container">
-        <!-- Top Header Bar -->
-        <div class="top-header-bar">
-            <div class="header-brand">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <!-- Logo Left -->
+            <div class="dashboard-logo">
                 {% if theme_settings.logo.type == 'image' and theme_settings.logo.url %}
-                <img src="{{ theme_settings.logo.url }}" alt="Logo" class="header-logo">
+                <img src="{{ theme_settings.logo.url }}" alt="Logo" style="height: 40px; width: auto;">
                 {% else %}
-                <div class="header-logo-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path
                             d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
                     </svg>
+                    <span style="font-size: 18px; font-weight: 600; color: white;">{{ theme_settings.app_name[lang] if
+                        theme_settings.app_name is mapping else theme_settings.app_name }}</span>
                 </div>
                 {% endif %}
-                <span class="header-title" id="mainAppTitle">{{ theme_settings.app_name.ar if theme_settings.app_name is
-                    mapping else theme_settings.app_name or 'نموذج الذكاء الاصطناعي للبيانات' }}</span>
             </div>
-            <div class="header-right">
-                <div class="header-status">
-                    <div class="status-dot online"></div>
-                    <span>AI Ready</span>
-                </div>
-                <div class="header-datetime">
-                    <span class="header-time" id="headerTime">00:00</span>
-                    <span class="header-date" id="headerDate">--/--/----</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Currency Ticker Marquee -->
-        <div class="currency-ticker">
-            <div class="ticker-content">
-                <span class="ticker-item">
-                    <span class="currency-symbol">💵</span>
-                    <span class="currency-pair">USD/SAR</span>
-                    <span class="currency-price up">3.75</span>
-                    <span class="currency-change up">+0.02%</span>
-                </span>
-                <span class="ticker-item">
-                    <span class="currency-symbol">💶</span>
-                    <span class="currency-pair">EUR/SAR</span>
-                    <span class="currency-price down">4.08</span>
-                    <span class="currency-change down">-0.15%</span>
-                </span>
-                <span class="ticker-item">
-                    <span class="currency-symbol">💷</span>
-                    <span class="currency-pair">GBP/SAR</span>
-                    <span class="currency-price up">4.76</span>
-                    <span class="currency-change up">+0.08%</span>
-                </span>
-                <span class="ticker-item">
-                    <span class="currency-symbol">💴</span>
-                    <span class="currency-pair">JPY/SAR</span>
-                    <span class="currency-price">0.025</span>
-                    <span class="currency-change">0.00%</span>
-                </span>
-                <span class="ticker-item">
-                    <span class="currency-symbol">🇦🇪</span>
-                    <span class="currency-pair">AED/SAR</span>
-                    <span class="currency-price up">1.02</span>
-                    <span class="currency-change up">+0.01%</span>
-                </span>
-                <span class="ticker-item">
-                    <span class="currency-symbol">🇰🇼</span>
-                    <span class="currency-pair">KWD/SAR</span>
-                    <span class="currency-price down">12.23</span>
-                    <span class="currency-change down">-0.05%</span>
-                </span>
-                <span class="ticker-item">
-                    <span class="currency-symbol">₿</span>
-                    <span class="currency-pair">BTC/USD</span>
-                    <span class="currency-price up">43,250</span>
-                    <span class="currency-change up">+2.34%</span>
-                </span>
-                <span class="ticker-item">
-                    <span class="currency-symbol">Ξ</span>
-                    <span class="currency-pair">ETH/USD</span>
-                    <span class="currency-price up">2,285</span>
-                    <span class="currency-change up">+1.87%</span>
-                </span>
+            <!-- Center Menu -->
+            <div class="dashboard-menu">
+                <button class="dashboard-menu-btn active">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" />
+                        <rect x="14" y="3" width="7" height="5" />
+                        <rect x="14" y="12" width="7" height="9" />
+                        <rect x="3" y="16" width="7" height="5" />
+                    </svg>
+                    <span>Overview</span>
+                </button>
+                <button class="dashboard-menu-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                    </svg>
+                    <span>Treatment</span>
+                </button>
+                <button class="dashboard-menu-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    <span>Labs</span>
+                </button>
+                <button class="dashboard-menu-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4" />
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                    <span>Reports</span>
+                </button>
+            </div>
+
+            <!-- Right User Profile -->
+            <div class="dashboard-user">
+                <button class="dashboard-search-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                </button>
+                <div class="dashboard-user-profile">
+                    <div class="user-avatar-dash">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=00A651&color=fff" alt="User"
+                            style="width: 100%; height: 100%; border-radius: 50%;">
+                    </div>
+                    <div class="user-info-dash">
+                        <span class="user-name-dash">Welcome,</span>
+                        <span class="user-role-dash">{{ session.get('user_display_name', 'Administrator') }}</span>
+                    </div>
+                </div>
+                <button class="dashboard-settings-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 1v6m0 6v6m-6-6h6m6 0h6" />
+                    </svg>
+                </button>
             </div>
         </div>
 
-        <!-- Desktop Widgets Area -->
-        <div class="desktop-widgets" id="desktopWidgets">
-            <!-- Default Widgets - will be replaced by dynamic widgets if available -->
+        <!-- Desktop Widgets Area - Dashboard Widgets -->
+        <div class="desktop-widgets" id="desktopWidgets"
+            style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 18px; padding: 90px 25px 80px 25px; height: calc(100vh - 70px); overflow: hidden;">
 
-            <!-- AI Stats Widget -->
-            <div class="desktop-widget ai-widget" data-widget-id="ai-models">
-                <div class="widget-header">
-                    <div class="widget-icon ai-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path
-                                d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
-                            <circle cx="7.5" cy="14.5" r="1.5" />
-                            <circle cx="16.5" cy="14.5" r="1.5" />
-                        </svg>
-                    </div>
-                    <span class="widget-title" data-i18n="aiModels">نماذج الذكاء الاصطناعي</span>
-                </div>
-                <div class="widget-body">
-                    <div class="model-item active">
-                        <div class="model-status online"></div>
-                        <div class="model-info">
-                            <span class="model-name">GPT-4</span>
-                            <span class="model-desc">متصل • جاهز</span>
-                        </div>
-                        <span class="model-badge primary">الافتراضي</span>
-                    </div>
-                    <div class="model-item">
-                        <div class="model-status online"></div>
-                        <div class="model-info">
-                            <span class="model-name">Claude 3</span>
-                            <span class="model-desc">متصل</span>
-                        </div>
-                    </div>
-                    <div class="model-item">
-                        <div class="model-status offline"></div>
-                        <div class="model-info">
-                            <span class="model-name">Gemini Pro</span>
-                            <span class="model-desc">غير متصل</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chat Stats Widget -->
-            <div class="desktop-widget stats-card-widget" data-widget-id="chat-stats">
-                <div class="widget-header">
-                    <div class="widget-icon chat-stats-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        </svg>
-                    </div>
-                    <span class="widget-title" data-i18n="chatStats">إحصائيات الدردشة</span>
-                </div>
-                <div class="widget-body">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number" id="totalChats">156</div>
-                            <div class="stat-label" data-i18n="totalConversations">إجمالي المحادثات</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="todayChats">12</div>
-                            <div class="stat-label" data-i18n="todayConversations">محادثات اليوم</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="totalMessages">1.2K</div>
-                            <div class="stat-label" data-i18n="totalMessages">إجمالي الرسائل</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="avgResponseTime">1.3s</div>
-                            <div class="stat-label" data-i18n="avgResponse">متوسط الاستجابة</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- System Status Widget -->
-            <div class="desktop-widget system-widget" data-widget-id="system-status">
-                <div class="widget-header">
-                    <div class="widget-icon system-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                            <line x1="8" y1="21" x2="16" y2="21" />
-                            <line x1="12" y1="17" x2="12" y2="21" />
-                        </svg>
-                    </div>
-                    <span class="widget-title" data-i18n="systemStatus">حالة النظام</span>
-                </div>
-                <div class="widget-body">
-                    <div class="system-status-item">
-                        <span class="status-label">API</span>
-                        <div class="status-bar">
-                            <div class="status-fill"
-                                style="width: 100%; background: linear-gradient(90deg, #00A651, #00D68F);"></div>
-                        </div>
-                        <span class="status-value success">متصل</span>
-                    </div>
-                    <div class="system-status-item">
-                        <span class="status-label">CPU</span>
-                        <div class="status-bar">
-                            <div class="status-fill"
-                                style="width: 45%; background: linear-gradient(90deg, #0078D4, #00BCF2);"></div>
-                        </div>
-                        <span class="status-value">45%</span>
-                    </div>
-                    <div class="system-status-item">
-                        <span class="status-label">Memory</span>
-                        <div class="status-bar">
-                            <div class="status-fill"
-                                style="width: 68%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
-                        </div>
-                        <span class="status-value">68%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions Widget -->
-            <div class="desktop-widget actions-widget" data-widget-id="quick-actions">
-                <div class="widget-header">
-                    <div class="widget-icon actions-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                        </svg>
-                    </div>
-                    <span class="widget-title" data-i18n="quickActions">إجراءات سريعة</span>
-                </div>
-                <div class="widget-body">
-                    <div class="quick-actions-grid">
-                        <button class="quick-action-btn" onclick="toggleWindow('chatWindow')">
+            <!-- Left Column - 3 Widgets -->
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                <!-- Widget 1 - Left Top -->
+                <div class="desktop-widget stats-card-widget" data-widget-id="left-widget-1"
+                    style="flex: 1; min-height: 0;">
+                    <div class="widget-header">
+                        <div class="widget-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
                             </svg>
-                            <span data-i18n="newChat">محادثة جديدة</span>
-                        </button>
-                        <button class="quick-action-btn" onclick="toggleWindow('settingsWindow')">
+                        </div>
+                        <span class="widget-title" style="font-size: 14px;">Patient Info</span>
+                    </div>
+                    <div class="widget-body">
+                        <!-- Empty for now -->
+                    </div>
+                </div>
+
+                <!-- Widget 2 - Left Middle -->
+                <div class="desktop-widget stats-card-widget" data-widget-id="left-widget-2"
+                    style="flex: 1; min-height: 0;">
+                    <div class="widget-header">
+                        <div class="widget-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                            </svg>
+                        </div>
+                        <span class="widget-title" style="font-size: 14px;">Vital Signs</span>
+                    </div>
+                    <div class="widget-body">
+                        <!-- Empty for now -->
+                    </div>
+                </div>
+
+                <!-- Widget 3 - Left Bottom -->
+                <div class="desktop-widget stats-card-widget" data-widget-id="left-widget-3"
+                    style="flex: 1; min-height: 0;">
+                    <div class="widget-header">
+                        <div class="widget-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                            </svg>
+                        </div>
+                        <span class="widget-title" style="font-size: 14px;">Allergies</span>
+                    </div>
+                    <div class="widget-body">
+                        <!-- Empty for now -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Column - Main Display -->
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                <div class="desktop-widget stats-card-widget" data-widget-id="center-main"
+                    style="flex: 1; background: rgba(20, 25, 40, 0.7); position: relative; min-height: 0;">
+                    <div class="widget-body"
+                        style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 50px;">
+                        <div style="text-align: center; color: rgba(255, 255, 255, 0.3);">
+                            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1">
+                                <path
+                                    d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
                                 <circle cx="12" cy="12" r="3" />
-                                <path
-                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                             </svg>
-                            <span data-i18n="settings">الإعدادات</span>
-                        </button>
-                        {% if user_role == 'admin' %}
-                        <button class="quick-action-btn" onclick="toggleWindow('adminWindow')">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                                <path d="M2 17l10 5 10-5" />
-                                <path d="M2 12l10 5 10-5" />
-                            </svg>
-                            <span data-i18n="controlPanel">لوحة التحكم</span>
-                        </button>
-                        {% endif %}
-                        <button class="quick-action-btn" onclick="clearHistory()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <polyline points="3 6 5 6 21 6" />
-                                <path
-                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            </svg>
-                            <span data-i18n="clearHistory">مسح السجل</span>
-                        </button>
+                            <p style="margin-top: 20px; font-size: 17px;">Main Display Area</p>
+                            <p style="font-size: 13px; opacity: 0.7;">Content will be displayed here</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Custom Widgets Container - Dynamic widgets will be added here -->
-            <div id="customWidgetsContainer"></div>
-        </div>
+            <!-- Right Column - 3 Widgets -->
+            <div style="display: flex; flex-direction: column; gap: 18px;">
+                <!-- Widget 1 - Right Top -->
+                <div class="desktop-widget stats-card-widget" data-widget-id="right-widget-1"
+                    style="flex: 1; min-height: 0;">
+                    <div class="widget-header">
+                        <div class="widget-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                        </div>
+                        <span class="widget-title" style="font-size: 14px;">Recent Activity</span>
+                    </div>
+                    <div class="widget-body">
+                        <!-- Empty for now -->
+                    </div>
+                </div>
 
-        <!-- Footer Logo -->
-        <!-- <div class="desktop-footer-logo">
-            {% if theme_settings.logo.type == 'image' and theme_settings.logo.url %}
-            <img src="{{ theme_settings.logo.url }}" alt="Logo" class="footer-logo-image">
-            {% else %}
-            <div class="footer-logo-text">{{ theme_settings.logo.text or 'AI Assistant' }}</div>
-            {% endif %}
-        </div> -->
+                <!-- Widget 2 - Right Middle -->
+                <div class="desktop-widget stats-card-widget" data-widget-id="right-widget-2"
+                    style="flex: 1; min-height: 0;">
+                    <div class="widget-header">
+                        <div class="widget-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                            </svg>
+                        </div>
+                        <span class="widget-title" style="font-size: 14px;">Vital Signs</span>
+                    </div>
+                    <div class="widget-body">
+                        <!-- Empty for now -->
+                    </div>
+                </div>
+
+                <!-- Widget 3 - Right Bottom -->
+                <div class="desktop-widget stats-card-widget" data-widget-id="right-widget-3"
+                    style="flex: 1; min-height: 0;">
+                    <div class="widget-header">
+                        <div class="widget-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
+                            </svg>
+                        </div>
+                        <span class="widget-title" style="font-size: 14px;">AI Analytics</span>
+                    </div>
+                    <div class="widget-body">
+                        <!-- Empty for now -->
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Windows Container -->
         <div class="windows-container" id="windowsContainer">
@@ -346,103 +296,12 @@
                             <span data-i18n="newChat">محادثة جديدة</span>
                         </button>
 
-                        <!-- Sidebar View Toggle -->
-                        <div class="sidebar-toggle-container">
-                            <button class="sidebar-toggle-btn active" data-view="history"
-                                onclick="toggleSidebarView('history')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span data-i18n="history">History</span>
-                            </button>
-                            <button class="sidebar-toggle-btn" data-view="filters"
-                                onclick="toggleSidebarView('filters')">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path
-                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                </svg>
-                                <span data-i18n="filters">Filters</span>
-                            </button>
-                        </div>
-
                         <div class="chat-history">
                             <div class="history-header">
                                 <span data-i18n="chatHistory">سجل المحادثات</span>
                             </div>
                             <div class="history-list" id="chatHistoryList">
                                 <div class="no-history" data-i18n="noHistory">لا توجد محادثات سابقة</div>
-                            </div>
-                        </div>
-
-                        <!-- Filters Panel - 3 Step Wizard -->
-                        <div class="filters-panel" style="display: none;">
-                            <!-- Wizard Progress -->
-                            <div class="wizard-progress">
-                                <div class="progress-step active" data-step="1">
-                                    <div class="step-number">1</div>
-                                    <div class="step-label">Domain</div>
-                                </div>
-                                <div class="progress-step" data-step="2">
-                                    <div class="step-number">2</div>
-                                    <div class="step-label">Category</div>
-                                </div>
-                                <div class="progress-step" data-step="3">
-                                    <div class="step-number">3</div>
-                                    <div class="step-label">Details</div>
-                                </div>
-                            </div>
-
-                            <!-- Step 1: Data Type -->
-                            <div class="wizard-step active" data-step="1">
-                                <h3 class="step-title">Choose your investigation domain</h3>
-                                <p class="step-description">Select the domain you want to investigate</p>
-
-                                <div class="filter-options" id="step1Options">
-                                    <!-- Will be populated dynamically from database -->
-                                    <div style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.6);">
-                                        <div style="margin-bottom: 10px;">Loading domains...</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Step 2: Category -->
-                            <div class="wizard-step" data-step="2" style="display: none;">
-                                <h3 class="step-title">Choose Category</h3>
-                                <p class="step-description">Select the specific category to filter by</p>
-                                <div class="filter-options" id="step2Options">
-                                    <!-- Will be populated dynamically -->
-                                </div>
-                            </div>
-
-                            <!-- Step 3: Details -->
-                            <div class="wizard-step" data-step="3" style="display: none;">
-                                <h3 class="step-title">Specify Details</h3>
-                                <p class="step-description">Choose the final details for the filter</p>
-                                <div class="filter-options" id="step3Options">
-                                    <!-- Will be populated dynamically -->
-                                </div>
-                            </div>
-
-                            <!-- Wizard Navigation -->
-                            <div class="wizard-navigation">
-                                <button class="wizard-btn wizard-btn-back" id="wizardBackBtn"
-                                    onclick="previousWizardStep()" style="display: none;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                                    </svg>
-                                    Previous
-                                </button>
-                                <button class="wizard-btn wizard-btn-next" id="wizardNextBtn" onclick="nextWizardStep()"
-                                    disabled>
-                                    Next
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path d="M5 12h14M12 5l7 7-7 7" />
-                                    </svg>
-                                </button>
                             </div>
                         </div>
                     </aside>
@@ -1603,7 +1462,7 @@
             </div>
 
             <div class="taskbar-center">
-                <button class="taskbar-btn app-btn" onclick="window.location.href='/dashboard'"
+                <button class="taskbar-btn app-btn active" onclick="window.location.href='/dashboard'"
                     data-i18n-title="Dashboard">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="9" />
@@ -1745,49 +1604,6 @@
         </div>
     </div>
 
-    <!-- Marked.js for Markdown parsing -->
-    <script src="{{ url_for('static', filename='marked.min.js') }}?v={{ timestamp }}"></script>
-    <script>
-        // Verify marked.js is loaded
-        console.log('Checking marked.js status...');
-        if (typeof marked !== 'undefined') {
-            console.log('✅ Marked.js loaded. Type:', typeof marked);
-            console.log('Keys:', Object.keys(marked));
-            if (marked.parse) {
-                console.log('✅ marked.parse is available');
-                console.log('Test parse:', marked.parse('**test**'));
-            } else {
-                console.error('❌ marked.parse is MISSING');
-            }
-
-            // Configure marked options
-            try {
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true,
-                    headerIds: false,
-                    mangle: false
-                });
-                console.log('✅ Marked options set');
-            } catch (e) {
-                console.error('❌ Error setting options:', e);
-            }
-        } else {
-            console.error('❌ Failed to load marked.js - marked is undefined');
-        }
-    </script>
-
-    <!-- Currency Ticker Script -->
-    <script>
-        // Duplicate ticker content for seamless loop
-        document.addEventListener('DOMContentLoaded', function () {
-            const tickerContent = document.querySelector('.ticker-content');
-            if (tickerContent) {
-                const clone = tickerContent.innerHTML;
-                tickerContent.innerHTML += clone; // Duplicate content for seamless loop
-            }
-        });
-    </script>
     <script src="{{ url_for('static', filename='translations.js') }}?v={{ timestamp }}"></script>
     <script src="{{ url_for('static', filename='desktop.js') }}?v={{ timestamp }}"></script>
     <script>
@@ -1839,8 +1655,6 @@
             };
         }
     </script>
-    <script src="{{ url_for('static', filename='filter-wizard.js') }}?v={{ timestamp }}"></script>
-    <script src="{{ url_for('static', filename='sidebar-wizard.js') }}?v={{ timestamp }}"></script>
 </body>
 
 </html>
