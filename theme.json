@@ -1,0 +1,48 @@
+{
+    "colors": {
+        "primary": "#ffffff",
+        "primary_dark": "#000000",
+        "primary_light": "#000000",
+        "secondary": "#ffffff",
+        "background": "#ffffff",
+        "sidebar": "#005568",
+        "sidebar_text": "#ffffff",
+        "text_primary": "#000000",
+        "text_secondary": "#000000",
+        "user_msg_bg": "#000000",
+        "bot_msg_bg": "#000000",
+        "ai_badge_bg": "#00a651",
+        "taskbar_icons_color": "#ffffff",
+        "app_title_color": "#000000",
+        "header_bar_bg_color": "#005568",
+        "widget_bg_color": "#005568",
+        "widget_border_color": "#ffffff",
+        "widget_title_color": "#ffffff",
+        "widget_text_color": "#ffffff",
+        "widget_icon_ai": "#005568",
+        "widget_icon_chat": "#005568",
+        "widget_icon_system": "#005568",
+        "widget_icon_actions": "#005568"
+    },
+    "opacity": {
+        "sidebar": 0,
+        "background": 0,
+        "widget": 11,
+        "chat_msg": 100
+    },
+    "font": "Cairo",
+    "app_name": {
+        "ar": "البنك السعودي الفرنسي",
+        "en": "Banque Saudi Fransi"
+    },
+    "chat_header_title": {
+        "ar": "مساعد الذكاء الاصطناعي",
+        "en": "AI Assistant"
+    },
+    "logo": {
+        "type": "image",
+        "text": "",
+        "url": "/static/uploads/55e4b4ab4fddbe53_1050.SR_BIG.D_1.svg"
+    },
+    "background_image": "/static/uploads/325853bf88ac6903_abstract-colorful-autumn-leaves.jpg"
+}
