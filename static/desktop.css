@@ -4738,7 +4738,6 @@ body.window-open .desktop-footer-logo {
     .bank-rates-container {
         grid-template-columns: 1fr;
     }
-<<<<<<< HEAD
 }
 /* Taskbar Previews */
 .taskbar-previews-container {
@@ -4820,6 +4819,3 @@ body.window-open .desktop-footer-logo {
     color: white;
 }
 
-=======
-}
->>>>>>> c246036aed8941c43a9b1565584aabf71651f10a
