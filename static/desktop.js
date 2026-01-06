@@ -714,6 +714,38 @@ function simpleMarkdown(text) {
         .replace(/\n/g, '<br>');
 }
 function parseMarkdown(text) {
+    // Check if the text is a full HTML document
+    const trimmedText = text.trim();
+    if (trimmedText.startsWith('<!DOCTYPE') || trimmedText.startsWith('<html')) {
+        // Create an iframe to display the HTML report
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.border = '1px solid rgba(255,255,255,0.1)';
+        iframe.style.borderRadius = '8px';
+        iframe.style.minHeight = '600px';
+        iframe.style.backgroundColor = '#fff';
+        iframe.srcdoc = text;
+
+        // Auto-adjust iframe height after content loads
+        iframe.onload = function () {
+            try {
+                const iframeDoc = iframe.contentWindow.document;
+                const height = iframeDoc.body.scrollHeight;
+                iframe.style.height = (height + 20) + 'px';
+            } catch (e) {
+                console.warn('Could not adjust iframe height:', e);
+                iframe.style.height = '800px'; // fallback height
+            }
+        };
+
+        // Return the iframe wrapped in a container
+        const container = document.createElement('div');
+        container.className = 'html-report-container';
+        container.appendChild(iframe);
+        return container.outerHTML;
+    }
+
+    // Otherwise, parse as Markdown
     return (typeof marked !== 'undefined') ? marked.parse(text) : simpleMarkdown(text);
 }
 
