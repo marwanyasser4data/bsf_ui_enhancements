@@ -303,7 +303,19 @@ const translations = {
         step3Description: 'اختر التفاصيل النهائية لتطبيق الفلتر',
         prevBtn: 'السابق',
         nextBtn: 'التالي',
-        applyBtn: 'تطبيق الفلتر'
+        applyBtn: 'تطبيق الفلتر',
+
+        // Model Status
+        connectedReady: 'متصل • جاهز',
+        connected: 'متصل',
+        offline: 'غير متصل',
+        defaultModel: 'الافتراضي',
+
+        // Quick Actions Widget
+        quickActionsWidget: 'إجراءات سريعة',
+        newConversationBtn: 'محادثة جديدة',
+        controlPanelBtn: 'لوحة التحكم',
+        settingsBtn: 'الإعدادات'
 
     },
     en: {
@@ -609,7 +621,47 @@ const translations = {
         step3Description: 'Choose the final details to apply the filter',
         prevBtn: 'Previous',
         nextBtn: 'Next',
-        applyBtn: 'Apply Filter'
+        applyBtn: 'Apply Filter',
+
+        // Missing Widget Translations
+        newConversation: 'New Conversation',
+        systemHealth: 'System Health',
+        fastActions: 'Fast Actions',
+        usageMode: 'Usage Mode',
+        available: 'Available',
+        active: 'Active',
+        stable: 'Stable',
+        running: 'Running',
+
+        // Quick Action Buttons
+        startAIAnalysis: 'Start AI Analysis',
+        newChatBtn: 'New Chat',
+        controlPanelBtn: 'Control Panel',
+        settingsBtn: 'Settings',
+
+        // System Metrics
+        cpuUsage: 'CPU Usage',
+        memoryUsage: 'Memory Usage',
+        apiUsage: 'API Usage',
+        responseTime: 'Response Time',
+
+        // Widget Headers
+        aiModelsList: 'AI Models List',
+        conversationStats: 'Conversation Statistics',
+        systemMetrics: 'System Metrics',
+        quickActionsPanel: 'Quick Actions Panel',
+
+        // Model Status
+        connectedReady: 'Connected • Ready',
+        connected: 'Connected',
+        offline: 'Offline',
+        defaultModel: 'Default',
+
+        // Quick Actions Widget  
+        quickActionsWidget: 'Quick Actions',
+        newConversationBtn: 'New Conversation',
+        controlPanelBtn: 'Control Panel',
+        settingsBtn: 'Settings'
 
     }
 };

@@ -1125,13 +1125,13 @@ def custom_theme_css():
     
     /* Taskbar - Glass Effect */
     .taskbar {{
-        background: {hex_to_rgba(bg_color, 0.2)} !important;
+        background: rgba(45, 116, 131, 0.5) !important;
         backdrop-filter: blur(50px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(50px) saturate(180%) !important;
     }}
     
     .taskbar-center {{
-        background: rgba(27, 66, 151, 0.9) !important;
+        background: rgb(27 104 121) !important;
     }}
     
     /* Taskbar Icons */
@@ -1156,15 +1156,15 @@ def custom_theme_css():
     }}
     
     /* Buttons */
-    .new-chat-btn,
-    .send-btn {{
-        background: white;
+    .new-chat-btn {{
+        background: white !important;
     }}
     
-    .new-chat-btn:hover,
-    .send-btn:hover {{
+    .new-chat-btn:hover {{
         box-shadow: 0 5px 20px {colors.get('primary', '#00A651')}60 !important;
     }}
+    
+    /* Send button styling is defined in desktop.css at line 3450 */
     
     /* Start Menu - Glass Effect */
     .start-menu {{

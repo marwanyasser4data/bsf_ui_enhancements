@@ -825,3 +825,56 @@ window.toggleWindow = function (id) {
         if (el) el.style.display === 'none' ? openWindow(id) : closeWindow(id);
     }
 };
+
+// ============ Language Toggle ============
+function applyTranslations() {
+    const lang = document.documentElement.lang || 'ar';
+    if (typeof translations === 'undefined') return;
+
+    const trans = translations[lang] || translations['ar'];
+
+    // Update all elements with data-i18n attribute
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (trans[key]) {
+            // Check if it's an input/textarea (update placeholder) or regular element (update textContent)
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = trans[key];
+            } else {
+                el.textContent = trans[key];
+            }
+        }
+    });
+}
+
+function setLanguage(lang) {
+    fetch('/set_language', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: lang })
+    }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.setItem('preferredLanguage', lang);
+                window.location.reload();
+            }
+        }).catch(err => {
+            console.error('Language change error:', err);
+            window.location.reload();
+        });
+}
+
+function toggleLanguage() {
+    const currentLangEl = document.getElementById('currentLang');
+    if (!currentLangEl) {
+        console.error('currentLang element not found');
+        return;
+    }
+    const currentLang = currentLangEl.textContent;
+    const newLang = currentLang === 'ع' ? 'en' : 'ar';
+    setLanguage(newLang);
+}
+
+// Make functions available globally
+window.toggleLanguage = toggleLanguage;
+window.applyTranslations = applyTranslations;

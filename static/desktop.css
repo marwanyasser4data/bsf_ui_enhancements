@@ -744,7 +744,7 @@ body {
     justify-content: center;
     transition: all 0.2s;
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-secondary);
+    color: white;
 }
 
 .window-btn:hover {
@@ -2267,7 +2267,7 @@ body {
 .settings-sidebar {
     width: 220px;
     min-width: 220px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgb(40 110 124);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     padding: 15px 10px;
     overflow-y: auto;
@@ -2286,7 +2286,8 @@ body {
     padding: 12px 15px;
     border: none;
     background: transparent;
-    color: rgba(255, 255, 255, 0.7);
+    color: #ffffff;
+    /* Dark gray for better visibility */
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
@@ -2296,12 +2297,13 @@ body {
 }
 
 .settings-nav-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: rgba(0, 0, 0, 0.05);
+    color: #2d3748;
+    /* Darker on hover */
 }
 
 .settings-nav-item.active {
-    background: linear-gradient(135deg, var(--primary, #00A651), var(--primary-dark, #008542));
+    background: #1490a8;
     color: white;
 }
 
@@ -2315,6 +2317,8 @@ body {
     flex: 1;
     padding: 25px;
     overflow-y: auto;
+    background: #1490a8;
+    /* Light gray background for better control visibility */
 }
 
 .settings-tab {
@@ -2424,7 +2428,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.2);
+    background: #cbd5e0;
+    /* Gray background for better visibility */
     transition: 0.3s;
     border-radius: 26px;
 }
@@ -2702,16 +2707,19 @@ body {
 .settings-layout .lang-btn {
     padding: 8px 20px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid #cbd5e0;
+    /* Gray border for visibility */
     background: transparent;
-    color: rgba(255, 255, 255, 0.7);
+    color: #4a5568;
+    /* Dark gray text */
     cursor: pointer;
     transition: all 0.2s;
     font-family: inherit;
 }
 
 .settings-layout .lang-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.05);
+    border-color: #a0aec0;
 }
 
 .settings-layout .lang-btn.active {
@@ -3297,8 +3305,8 @@ body.light-mode .start-menu {
     display: flex;
     align-items: flex-end;
     gap: 12px;
-    background: rgb(0 0 0 / 9%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(0, 0, 0);
     border-radius: 20px;
     padding: 10px 14px;
     transition: all 0.3s ease;
@@ -3323,7 +3331,8 @@ body.light-mode .start-menu {
     border-radius: 12px;
     border: none;
     background: transparent;
-    color: var(--text-secondary);
+    color: #4a5568;
+    /* Darker gray for better visibility */
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -3332,9 +3341,17 @@ body.light-mode .start-menu {
     position: relative;
 }
 
+.tool-btn svg {
+    stroke: currentColor;
+    fill: none;
+    width: 20px;
+    height: 20px;
+}
+
 .tool-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
+    color: #1a202c;
+    /* Darker on hover */
 }
 
 .tool-btn.active {
@@ -3453,19 +3470,23 @@ body.light-mode .start-menu {
     height: 44px;
     border-radius: 14px;
     border: none;
-    background: #005568;
+    background: linear-gradient(135deg, #10b981, #059669);
+    /* Green gradient */
     color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    /* Reset padding to prevent icon from being crushed */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
 }
 
 .send-btn-modern:hover {
+    background: linear-gradient(135deg, #059669, #047857);
     transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .send-btn-modern:active {
@@ -3476,10 +3497,15 @@ body.light-mode .start-menu {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+    background: #6b7280;
 }
 
 .send-btn-modern svg {
+    width: 24px;
+    height: 24px;
     transition: transform 0.2s;
+    stroke: white;
+    fill: none;
 }
 
 .send-btn-modern:hover svg {
@@ -3550,7 +3576,7 @@ body.light-mode .start-menu {
 }
 
 .message.user .message-avatar {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: #16adce;
     color: white;
 }
 
@@ -4444,11 +4470,11 @@ body.window-open .desktop-footer-logo {
 .sidebar-toggle-btn:hover {
     background: rgba(124, 58, 237, 0.1);
     border-color: rgba(124, 58, 237, 0.3);
-    color: #7C3AED;
+    color: #ffffff;
 }
 
 .sidebar-toggle-btn.active {
-    background: #1b4297;
+    background: #238ba1;
     border-color: #ffffff;
     color: white;
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
@@ -4739,6 +4765,7 @@ body.window-open .desktop-footer-logo {
         grid-template-columns: 1fr;
     }
 }
+
 /* Taskbar Previews */
 .taskbar-previews-container {
     position: absolute;
@@ -4819,3 +4846,66 @@ body.window-open .desktop-footer-logo {
     color: white;
 }
 
+
+
+/* Chat Input Area Styles - Enhanced */
+.chat-input-area-enhanced {
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Duplicate .input-container-modern removed - main definition is at line 3295 */
+
+
+.input-tools-left,
+.input-tools-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Duplicate .tool-btn removed - main definition is at line 3320 */
+
+
+.input-field-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.message-input {
+    width: 100%;
+    min-height: 20px;
+    max-height: 120px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary, #ffffff);
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: none;
+    outline: none;
+}
+
+.message-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Removed duplicate .send-btn-modern and .send-btn styling - now defined above at line 3450 */
+
+.send-icon,
+.stop-icon {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+}
+
+.send-icon {
+    display: block;
+}
+
+.stop-icon {
+    display: none;
+}
