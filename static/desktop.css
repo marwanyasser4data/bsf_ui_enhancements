@@ -94,8 +94,8 @@ body {
 }
 
 .header-logo {
-    width: 80px;
-    height: 25px;
+    width: 110px;
+    height: 55px;
     object-fit: contain;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
@@ -2267,8 +2267,8 @@ body {
 .settings-sidebar {
     width: 220px;
     min-width: 220px;
-    background: rgba(0, 0, 0, 0.2);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(3, 80, 120, 0.85);
+    border-left: 1px solid rgba(3, 151, 201, 0.5);
     padding: 15px 10px;
     overflow-y: auto;
 }
@@ -2286,7 +2286,7 @@ body {
     padding: 12px 15px;
     border: none;
     background: transparent;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.95);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
@@ -2301,8 +2301,9 @@ body {
 }
 
 .settings-nav-item.active {
-    background: linear-gradient(135deg, var(--primary, #00A651), var(--primary-dark, #008542));
+    background: #0397C9;
     color: white;
+    box-shadow: 0 2px 8px rgba(3, 151, 201, 0.3);
 }
 
 .settings-nav-item svg {
@@ -2359,7 +2360,7 @@ body {
 .settings-group-title {
     font-size: 0.85rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 15px;
@@ -2400,7 +2401,7 @@ body {
 
 .setting-desc {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 /* Toggle Switch */
@@ -3025,7 +3026,7 @@ body.light-mode .start-menu {
 
 .model-tag {
     padding: 3px 10px;
-    background: #005568;
+    background: #0397C9;
     border-radius: 12px;
     font-size: 0.7rem;
     font-weight: 600;
@@ -3171,7 +3172,7 @@ body.light-mode .start-menu {
 .capability-icon {
     width: 48px;
     height: 48px;
-    background: #005568;
+    background: #0397C9;
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -4448,7 +4449,7 @@ body.window-open .desktop-footer-logo {
 }
 
 .sidebar-toggle-btn.active {
-    background: #1b4297;
+    background: #ea1d76;
     border-color: #ffffff;
     color: white;
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
@@ -4739,6 +4740,7 @@ body.window-open .desktop-footer-logo {
         grid-template-columns: 1fr;
     }
 }
+
 /* Taskbar Previews */
 .taskbar-previews-container {
     position: absolute;
@@ -4818,4 +4820,3 @@ body.window-open .desktop-footer-logo {
     background: #ff5555;
     color: white;
 }
-

@@ -1085,7 +1085,7 @@ def custom_theme_css():
     
     /* Windows Glass Effect - More Transparent */
     .app-window {{
-        background: {hex_to_rgba(bg_color, background_opacity)} !important;
+        background: rgb(0 84 112) !important;
         backdrop-filter: blur(calc((1 - {background_opacity}) * 40px)) saturate(180%) !important;
         -webkit-backdrop-filter: blur(calc((1 - {background_opacity}) * 40px)) saturate(180%) !important;
     }}
@@ -1119,7 +1119,7 @@ def custom_theme_css():
     }}
     
     .taskbar-center {{
-        background: rgba(27, 66, 151, 0.9) !important;
+        background: #0397C9 !important;
     }}
     
     /* Taskbar Icons */

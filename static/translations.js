@@ -105,6 +105,10 @@ const translations = {
         systemStatus: 'حالة النظام',
         quickActions: 'إجراءات سريعة',
         readyToHelp: 'جاهز للمساعدة',
+        connectedReady: 'متصل • جاهز',
+        connected: 'متصل',
+        offline: 'غير متصل',
+        default: 'الافتراضي',
 
         // Chat Actions & Messages
         welcomeMessage: 'مرحباً! كيف يمكنني مساعدتك اليوم؟',
@@ -115,6 +119,9 @@ const translations = {
         tryAsking: 'جرب أن تسأل:',
         typeMessageAdvanced: 'اكتب رسالتك هنا... استخدم @ للإشارة، / للأوامر',
         chatSearchInput: 'ابحث في الرسائل...',
+        bestPractices: 'أفضل ممارسات البرمجة',
+        creativeStory: 'قصة إبداعية',
+        learnML: 'تعلم Machine Learning',
 
         // Settings Tabs
         generalTab: 'عام',
@@ -411,6 +418,10 @@ const translations = {
         systemStatus: 'System Status',
         quickActions: 'Quick Actions',
         readyToHelp: 'Ready to Help',
+        connectedReady: 'Connected • Ready',
+        connected: 'Connected',
+        offline: 'Offline',
+        default: 'Default',
 
         // Chat Actions & Messages
         welcomeMessage: 'Hello! How can I help you today?',
@@ -421,6 +432,9 @@ const translations = {
         tryAsking: 'Try Asking:',
         typeMessageAdvanced: 'Type your message here... Use @ to mention, / for commands',
         chatSearchInput: 'Search messages...',
+        bestPractices: 'Best Programming Practices',
+        creativeStory: 'Creative Story',
+        learnML: 'Learn Machine Learning',
 
         // Settings Tabs
         generalTab: 'General',
@@ -656,3 +670,44 @@ window.changeLanguage = function (lang) {
 
 // Get current language
 let currentLang = localStorage.getItem('preferredLanguage') || 'ar';
+
+// Toggle language function
+window.toggleLanguage = function () {
+    const newLang = currentLang === 'ar' ? 'en' : 'ar';
+    changeLanguage(newLang);
+
+    // Update language button text
+    const langBtn = document.getElementById('currentLang');
+    if (langBtn) {
+        langBtn.textContent = newLang === 'ar' ? 'ع' : 'EN';
+    }
+
+    // Reload page to apply language change
+    setTimeout(() => {
+        window.location.reload();
+    }, 100);
+};
+
+// Apply translations on page load
+document.addEventListener('DOMContentLoaded', function () {
+    // Get current language from localStorage or HTML lang attribute
+    const storedLang = localStorage.getItem('preferredLanguage');
+    const htmlLang = document.documentElement.lang;
+    currentLang = storedLang || htmlLang || 'ar';
+
+    // Apply translations to all elements with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.placeholder = t(key);
+        } else {
+            el.textContent = t(key);
+        }
+    });
+
+    // Update language button text
+    const langBtn = document.getElementById('currentLang');
+    if (langBtn) {
+        langBtn.textContent = currentLang === 'ar' ? 'ع' : 'EN';
+    }
+});

@@ -5,44 +5,44 @@
         "primary_light": "#000000",
         "secondary": "#ffffff",
         "background": "#ffffff",
-        "sidebar": "#005568",
+        "sidebar": "#0095c7",
         "sidebar_text": "#ffffff",
         "text_primary": "#000000",
         "text_secondary": "#000000",
         "user_msg_bg": "#000000",
         "bot_msg_bg": "#000000",
-        "ai_badge_bg": "#00a651",
+        "ai_badge_bg": "#0397c9",
         "taskbar_icons_color": "#ffffff",
         "app_title_color": "#000000",
-        "header_bar_bg_color": "#005568",
-        "widget_bg_color": "#005568",
+        "header_bar_bg_color": "#007aa3",
+        "widget_bg_color": "#0782ab",
         "widget_border_color": "#ffffff",
         "widget_title_color": "#ffffff",
         "widget_text_color": "#ffffff",
-        "widget_icon_ai": "#005568",
-        "widget_icon_chat": "#005568",
-        "widget_icon_system": "#005568",
-        "widget_icon_actions": "#005568"
+        "widget_icon_ai": "#0397c9",
+        "widget_icon_chat": "#0397c9",
+        "widget_icon_system": "#0397c9",
+        "widget_icon_actions": "#0397c9"
     },
     "opacity": {
         "sidebar": 0,
         "background": 0,
-        "widget": 11,
+        "widget": 19,
         "chat_msg": 100
     },
     "font": "Cairo",
     "app_name": {
-        "ar": "البنك السعودي الفرنسي",
-        "en": "Banque Saudi Fransi"
+        "ar": "مساعد الذكاء الاصطناعي - بداية",
+        "en": "Bidaya AI Assistant Chat Model"
     },
     "chat_header_title": {
-        "ar": "مساعد الذكاء الاصطناعي",
-        "en": "AI Assistant"
+        "ar": "مساعد الذكاء الاصطناعي - بداية",
+        "en": "AI Assistant -Bidaya"
     },
     "logo": {
         "type": "image",
         "text": "",
-        "url": "/static/uploads/55e4b4ab4fddbe53_1050.SR_BIG.D_1.svg"
+        "url": "/static/uploads/53df912fe3dfb6f5_BidayaNewLogo.6390124c.png"
     },
-    "background_image": "/static/uploads/325853bf88ac6903_abstract-colorful-autumn-leaves.jpg"
+    "background_image": "/static/uploads/d5b80701c4a344c8_Whisk_66591cfea94a5b59e8b4662c95f61104dr.jpeg"
 }
