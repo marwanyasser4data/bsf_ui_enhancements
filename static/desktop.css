@@ -4835,7 +4835,8 @@ body.window-open .desktop-footer-logo {
 }
 
 .send-btn svg,
-.send-icon {
+.send-icon,
+.stop-icon {
     width: 32px !important;
     height: 32px !important;
     min-width: 32px !important;

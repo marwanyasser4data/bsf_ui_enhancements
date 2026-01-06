@@ -315,6 +315,7 @@ function initGlobalDelegation() {
                     case 'attach-file': attachFile(windowId); break;
                     case 'insert-emoji': insertEmoji(windowId); break;
                     case 'export-chat': exportChat(windowId); break;
+                    case 'stop-generation': stopGeneration(windowId); break;
                 }
             }
 
@@ -387,14 +388,11 @@ function sendMessage(windowId) {
     let fullResponse = '';
 
     // STOP Handler
-    const sendBtn = windowEl.querySelector('[data-action="send-message"]');
+    const sendBtn = windowEl.querySelector('.send-btn') || windowEl.querySelector('[data-action="send-message"]');
     if (sendBtn) {
+        sendBtn.dataset.action = 'stop-generation';
         sendBtn.querySelector('.send-icon').style.display = 'none';
         sendBtn.querySelector('.stop-icon').style.display = 'block';
-        // Need to change action or onclick to stop?
-        // Actually delegation checks 'send-message'. 
-        // We should temporarily change data-action or handle state in delegation.
-        // Simplified: Global toggle.
     }
 
     let updatePending = false;
@@ -427,6 +425,7 @@ function sendMessage(windowId) {
         instance.isStreaming = false;
         instance.eventSource = null;
         if (sendBtn) {
+            sendBtn.dataset.action = 'send-message';
             sendBtn.querySelector('.send-icon').style.display = 'block';
             sendBtn.querySelector('.stop-icon').style.display = 'none';
         }
@@ -495,6 +494,17 @@ function stopGeneration(windowId) {
         instance.eventSource.close();
         instance.isStreaming = false;
         hideTyping(windowId);
+
+        // Reset button state
+        const windowEl = document.getElementById(windowId);
+        const sendBtn = windowEl ? windowEl.querySelector('.send-btn') : null;
+        if (sendBtn) {
+            sendBtn.dataset.action = 'send-message';
+            const sendIcon = sendBtn.querySelector('.send-icon');
+            const stopIcon = sendBtn.querySelector('.stop-icon');
+            if (sendIcon) sendIcon.style.display = 'block';
+            if (stopIcon) stopIcon.style.display = 'none';
+        }
     }
 }
 
