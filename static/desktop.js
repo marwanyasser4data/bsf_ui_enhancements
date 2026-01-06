@@ -107,6 +107,11 @@ function createChatWindow(sessionId = null) {
     openWindow(windowId);
     toggleMaximize(windowId);
 
+    // Initialize Wizard
+    if (typeof initSidebarWizard === 'function') {
+        initSidebarWizard(windowId);
+    }
+
     updateTaskbar();
     return windowId;
 }

@@ -5,7 +5,7 @@
         "primary_light": "#000000",
         "secondary": "#ffffff",
         "background": "#ffffff",
-        "sidebar": "#005568",
+        "sidebar": "#128fab",
         "sidebar_text": "#ffffff",
         "text_primary": "#000000",
         "text_secondary": "#000000",
@@ -44,5 +44,5 @@
         "text": "",
         "url": "/static/uploads/55e4b4ab4fddbe53_1050.SR_BIG.D_1.svg"
     },
-    "background_image": "/static/uploads/325853bf88ac6903_abstract-colorful-autumn-leaves.jpg"
+    "background_image": "/static/uploads/ba6dca9c81387fc1_Whisk_bf1a4252798a3c0aebe4672b4e3d640adr.png"
 }

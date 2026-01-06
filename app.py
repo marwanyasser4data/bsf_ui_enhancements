@@ -23,99 +23,112 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+companies_dict = {
+    "Energy": {
+        "Large": [
+            {"ticker": "2222", "name": "Saudi Aramco"},
+            {"ticker": "2380", "name": "Petro Rabigh"},
+        ],
+        "Medium": [
+            {"ticker": "4030", "name": "Bahri"},
+            {"ticker": "2381", "name": "Arabian Drilling"},
+        ],
+        "Small": [
+            {"ticker": "2382", "name": "ADES"},
+            {"ticker": "2030", "name": "SARCO"},
+        ],
+    },
 
-companies_dict= {
-    "Energy & Petrochemicals": {
+    "Materials": {
         "Large": [
-            "Saudi Aramco",
-            "SABIC",
-            "Petro Rabigh",
-            "Saudi Kayan Petrochemical Company",
-            "Sahara International Petrochemical Company (SIPCHEM)",
+            {"ticker": "2010", "name": "SABIC"},
+            {"ticker": "1211", "name": "Maaden"},
+            {"ticker": "2290", "name": "Yansab"},
         ],
         "Medium": [
-            "Yanbu National Petrochemical Company (Yansab)",
-            "Saudi Arabian Fertilizer Company (SAFCO)",
-            "Saudi Chevron Phillips Company",
+            {"ticker": "2330", "name": "Advanced Petrochemical"},
+            {"ticker": "2310", "name": "Sipchem"},
+            {"ticker": "2350", "name": "Saudi Kayan"},
         ],
         "Small": [
-            "Alujain Corporation",
-            "Nama Chemicals Company",
-            "Alkhorayef Petroleum Company",
+            {"ticker": "2210", "name": "Nama Chemicals"},
+            {"ticker": "2170", "name": "Alujain"},
+            {"ticker": "2150", "name": "Zoujaj"},
         ],
     },
-    "Construction & Real Estate": {
+
+    "Banks": {
         "Large": [
-            "Saudi Binladin Group",
-            "Nesma & Partners Contracting Co. Ltd.",
-            "Emaar, The Economic City (ECC)",
-            "Dar Al Arkan Real Estate Development Company",
+            {"ticker": "1180", "name": "Saudi National Bank (SNB)"},
+            {"ticker": "1120", "name": "Al Rajhi Bank"},
         ],
         "Medium": [
-            "Yanbu Cement Co.",
-            "Jabal Omar Development Company (JODC)",
-            "Umm Al Qura for Development & Construction Company",
+            {"ticker": "1050", "name": "Bank Saudi Fransi (BSF)"},
+            {"ticker": "1060", "name": "SABB"},
         ],
         "Small": [
-            "Saudi Enaya Cooperative Insurance Co",
-            "Musharaka REIT Fund",
-            "Knowledge Economic City Company",
-            "Masah Specialized Construction",
+            {"ticker": "1150", "name": "Alinma Bank"},
+            {"ticker": "1140", "name": "Bank Albilad"},
         ],
     },
+
     "Healthcare": {
         "Large": [
-            "Dr. Sulaiman Al Habib Medical Group",
-            "Mouwasat Medical Services Company",
-            "Dallah Healthcare Company",
-            "Almoosa Health Co.",
+            {"ticker": "4013", "name": "Dr. Sulaiman Al Habib Medical Group"},
+            {"ticker": "4002", "name": "Mouwasat Medical Services"},
         ],
         "Medium": [
-            "Jamjoom Pharmaceuticals Company",
-            "Tabuk Pharmaceuticals Company",
-            "Nahdi Medical Company (Pharmacies)",
-            "International Medical Center (IMC), Jeddah",
+            {"ticker": "4004", "name": "Dallah Healthcare"},
+            {"ticker": "4017", "name": "Fakeeh Care"},
         ],
         "Small": [
-            "Saudi Pharmaceutical Industries & Medical Appliances Corp. (SPIMACO)",
-            "Al Hammadi Holding Company",
-            "Saudi Arabian Cooperative Insurance Co. (MedGulf)",
+            {"ticker": "4007", "name": "Al Hammadi Holding"},
+            {"ticker": "4009", "name": "Saudi German Health"},
         ],
     },
+
     "Technology & IT Services": {
         "Large": [
-            "Al Moammar Information Systems Company (MIS)",
-            "Elm Company",
-            "STC Group",
+            {"ticker": "7010", "name": "STC Group"},
+            {"ticker": "7203", "name": "Elm Company"},
         ],
         "Medium": [
-            "Rasan Information Technology Company",
-            "Naseej",
+            {"ticker": "7202", "name": "Solutions by STC"},
+            {"ticker": "7200", "name": "Al Moammar Information Systems (MIS)"},
         ],
         "Small": [
-            "Edarat Communication & Information Technology Co.",
-            "Sure Global Tech Co.",
-            "Arab Sea Information Systems Co.",
+            {"ticker": "7201", "name": "Arab Sea Information Systems"},
+            {"ticker": "7204", "name": "2P"},
         ],
     },
-    "Retail & Consumer Goods": {
+
+    "Retail & Consumer": {
         "Large": [
-            "Almarai Company",
-            "Jarir Bookstore",
-            "Danube",
-            "Savola Group",
+            {"ticker": "2280", "name": "Almarai"},
+            {"ticker": "2050", "name": "Savola Group"},
         ],
         "Medium": [
-            "Al-Othaim Supermarket",
-            "eXtra (United Electronics Company)",
-            "SACO Hardware",
-            "Tamimi Markets",
-            "Al Hokair Retail",
+            {"ticker": "4190", "name": "Jarir Bookstore"},
+            {"ticker": "4161", "name": "BinDawood Holding"},
         ],
         "Small": [
-            "Fitaihi Holding Group",
-            "Anaam International Holding Group",
-            "Arabian Mills for Food Products",
+            {"ticker": "4180", "name": "Fitaihi Group"},
+            {"ticker": "4193", "name": "Nice One"},
+        ],
+    },
+
+    "Real Estate & REITs": {
+        "Large": [
+            {"ticker": "4300", "name": "Dar Al Arkan"},
+            {"ticker": "4220", "name": "Emaar Economic City"},
+        ],
+        "Medium": [
+            {"ticker": "4322", "name": "Retal Urban Development"},
+            {"ticker": "4250", "name": "Jabal Omar"},
+        ],
+        "Small": [
+            {"ticker": "4336", "name": "Mulkia REIT"},
+            {"ticker": "4347", "name": "Bonyan REIT"},
         ],
     },
 }
@@ -857,7 +870,7 @@ def get_filter_domains():
                 'description': sector,
                 'id': sector
             })
-        
+        print(result_list)
         return jsonify({'success': True, 'domains': result_list}) 
     except Exception as e:
         print(f"Error fetching domains via MCP: {str(e)}")
@@ -914,9 +927,9 @@ def get_filter_alerts():
         result_list = []
         for company in companies:
             result_list.append({
-                        'value': company,
-                        'title': company,
-                        'description': company,
+                        'value': company['name'],
+                        'title': company['name'],
+                        'description': company['ticker'],
                         'id': company,
                         'entity_id': company,
                         'entity_name': company,
@@ -969,7 +982,6 @@ def execute_final_query():
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
-
 def hex_to_rgba(hex_color, opacity=1.0):
     """Convert hex color to rgba"""
     hex_color = hex_color.lstrip('#')
