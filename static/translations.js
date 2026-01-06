@@ -87,6 +87,7 @@ const translations = {
 
         // Desktop UI
         aiAssistant: 'مساعد الذكاء الاصطناعي',
+        aiAssistantBidaya: 'مساعد الذكاء الاصطناعي - بداية',
         advancedAssistant: 'مساعد ذكي متقدم لخدمتك',
         typeMessage: 'اكتب رسالتك...',
         language: 'اللغة',
@@ -94,6 +95,8 @@ const translations = {
         controlPanel: 'لوحة التحكم',
         widgets: 'الأدوات',
         chat: 'الدردشة',
+        readyToAssist: 'جاهز للمساعدة',
+        welcomeGreeting: 'مرحباً! كيف يمكنني مساعدتك اليوم؟',
 
         // Widget Stats
         aiModels: 'نماذج الذكاء الاصطناعي',
@@ -119,6 +122,9 @@ const translations = {
         tryAsking: 'جرب أن تسأل:',
         typeMessageAdvanced: 'اكتب رسالتك هنا... استخدم @ للإشارة، / للأوامر',
         chatSearchInput: 'ابحث في الرسائل...',
+        enterToSend: 'إرسال',
+        shiftEnterNewLine: 'سطر جديد',
+        addAttachment: 'إضافة مرفقة',
         bestPractices: 'أفضل ممارسات البرمجة',
         creativeStory: 'قصة إبداعية',
         learnML: 'تعلم Machine Learning',
@@ -400,6 +406,7 @@ const translations = {
 
         // Desktop UI
         aiAssistant: 'AI Assistant',
+        aiAssistantBidaya: 'AI Assistant - Bidaya',
         advancedAssistant: 'Advanced intelligent assistant at your service',
         typeMessage: 'Type your message...',
         language: 'Language',
@@ -407,6 +414,8 @@ const translations = {
         controlPanel: 'Control Panel',
         widgets: 'Widgets',
         chat: 'Chat',
+        readyToAssist: 'Ready to Assist',
+        welcomeGreeting: 'Hello! How can I help you today?',
 
         // Widget Stats
         aiModels: 'AI Models',
@@ -432,6 +441,9 @@ const translations = {
         tryAsking: 'Try Asking:',
         typeMessageAdvanced: 'Type your message here... Use @ to mention, / for commands',
         chatSearchInput: 'Search messages...',
+        enterToSend: 'Send',
+        shiftEnterNewLine: 'New Line',
+        addAttachment: 'Add Attachment',
         bestPractices: 'Best Programming Practices',
         creativeStory: 'Creative Story',
         learnML: 'Learn Machine Learning',
@@ -693,21 +705,139 @@ document.addEventListener('DOMContentLoaded', function () {
     // Get current language from localStorage or HTML lang attribute
     const storedLang = localStorage.getItem('preferredLanguage');
     const htmlLang = document.documentElement.lang;
-    currentLang = storedLang || htmlLang || 'ar';
 
-    // Apply translations to all elements with data-i18n
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+    // Priority: localStorage > HTML lang attribute
+    if (storedLang && storedLang !== htmlLang) {
+        // If stored language is different from HTML lang, update it
+        currentLang = storedLang;
+        document.documentElement.lang = storedLang;
+        document.documentElement.dir = storedLang === 'ar' ? 'rtl' : 'ltr';
+    } else {
+        currentLang = storedLang || htmlLang || 'ar';
+    }
+
+    console.log('🌐 Applying translations for language:', currentLang);
+
+    // Function to apply translations
+    function applyTranslations() {
+        let count = 0;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            const translation = t(key);
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = translation;
+            } else {
+                el.textContent = translation;
+            }
+            count++;
+        });
+
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
             el.placeholder = t(key);
-        } else {
-            el.textContent = t(key);
-        }
-    });
+            count++;
+        });
+
+        console.log(`✅ Translated ${count} elements`);
+        return count;
+    }
+
+    // Apply immediately
+    applyTranslations();
+
+    // Apply after 500ms
+    setTimeout(() => {
+        console.log('🔄 Re-applying translations...');
+        applyTranslations();
+    }, 500);
+
+    // Apply after 1000ms
+    setTimeout(() => {
+        console.log('🔄 Final translation pass...');
+        applyTranslations();
+    }, 1000);
 
     // Update language button text
     const langBtn = document.getElementById('currentLang');
     if (langBtn) {
         langBtn.textContent = currentLang === 'ar' ? 'ع' : 'EN';
+    }
+
+    console.log('✅ Translation system ready');
+
+    // Watch for dynamically created chat windows
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) { // Element node
+                    // Check if it's a chat window or contains translatable elements
+                    if (node.classList && (node.classList.contains('chat-window-instance') || node.classList.contains('app-window'))) {
+                        console.log('🔄 New chat window detected, applying translations...');
+                        setTimeout(() => {
+                            applyTranslations();
+                            if (window.updateChatWindowTitles) {
+                                updateChatWindowTitles();
+                            }
+                        }, 100);
+                    }
+                    // Check for any new elements with data-i18n
+                    if (node.querySelectorAll) {
+                        const translatableElements = node.querySelectorAll('[data-i18n], [data-i18n-placeholder]');
+                        if (translatableElements.length > 0) {
+                            console.log(`🔄 Found ${translatableElements.length} new translatable elements`);
+                            setTimeout(() => applyTranslations(), 100);
+                        }
+                    }
+                }
+            });
+        });
+    });
+
+    // Start observing the document body for changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    console.log('👁️ MutationObserver active - watching for new content');
+
+    // Function to update chat window titles
+    window.updateChatWindowTitles = function () {
+        const lang = currentLang || localStorage.getItem('preferredLanguage') || 'ar';
+        console.log('🔄 Updating chat window titles for language:', lang);
+
+        // Update all chat window titles
+        document.querySelectorAll('.chat-window-instance .window-title-text').forEach(titleEl => {
+            // Priority: chatTitles > appTitles > fallback
+            if (window.chatTitles && window.chatTitles[lang]) {
+                titleEl.textContent = window.chatTitles[lang];
+                console.log('✅ Using chatTitles:', window.chatTitles[lang]);
+            } else if (window.appTitles && window.appTitles[lang]) {
+                titleEl.textContent = window.appTitles[lang];
+                console.log('✅ Using appTitles:', window.appTitles[lang]);
+            } else {
+                // Fallback to default translations
+                titleEl.textContent = lang === 'en' ? 'AI Assistant - Bidaya' : 'مساعد الذكاء الاصطناعي - بداية';
+                console.log('✅ Using fallback');
+            }
+        });
+
+        // Update welcome screen title
+        document.querySelectorAll('.welcome-app-title').forEach(titleEl => {
+            if (window.appTitles && window.appTitles[lang]) {
+                titleEl.textContent = window.appTitles[lang];
+            }
+        });
+    };
+
+    // Call updateChatWindowTitles when language changes
+    const originalChangeLanguage = window.changeLanguage;
+    if (originalChangeLanguage) {
+        window.changeLanguage = function (lang) {
+            originalChangeLanguage(lang);
+            setTimeout(() => {
+                updateChatWindowTitles();
+            }, 200);
+        };
     }
 });

@@ -807,7 +807,7 @@ body {
 
 .logo-image {
     width: 80px;
-    height: 25px;
+    height: 60px;
     object-fit: contain;
     filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.3));
     margin: 50px;
@@ -4819,4 +4819,27 @@ body.window-open .desktop-footer-logo {
 .preview-close:hover {
     background: #ff5555;
     color: white;
+}
+
+/* Send Button Icon Size and Layout Fix */
+.send-btn,
+.send-btn-modern {
+    width: 50px !important;
+    /* Increased width to fit 32px icon */
+    height: 50px !important;
+    padding: 0 !important;
+    /* Remove large padding that was squashing the icon */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.send-btn svg,
+.send-icon {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    /* Prevent squashing */
+    color: white !important;
+    stroke: white !important;
 }

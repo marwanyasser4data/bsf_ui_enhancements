@@ -303,9 +303,10 @@
                                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                                 </svg>
                             </div>
-                            <span class="window-title-text">{{ theme_settings.app_name[lang] if theme_settings.app_name
-                                is
-                                mapping else theme_settings.app_name or 'نموذج الذكاء الاصطناعي للبيانات' }}</span>
+                            <span class="window-title-text" data-i18n="aiAssistantBidaya">{{
+                                theme_settings.chat_header_title[lang] if theme_settings.chat_header_title is mapping
+                                else (theme_settings.app_name[lang] if theme_settings.app_name is mapping else
+                                (theme_settings.app_name or 'مساعد الذكاء الاصطناعي - بداية')) }}</span>
                         </div>
                         <div class="window-controls">
                             <button class="window-btn minimize" data-action="minimize">

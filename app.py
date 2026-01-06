@@ -1143,14 +1143,29 @@ def custom_theme_css():
         color: {colors.get('taskbar_icons_color', '#FFFFFF')} !important;
     }}
     
+    
     /* Buttons */
-    .new-chat-btn,
-    .send-btn {{
+    .new-chat-btn {{
         background: white;
     }}
     
-    .new-chat-btn:hover,
+    .new-chat-btn:hover {{
+        background: {colors.get('new_chat_btn_hover_color', '#027BA3')};
+        box-shadow: 0 5px 20px {colors.get('primary', '#00A651')}60 !important;
+    }}
+    
+    .send-btn {{
+        background: {colors.get('send_btn_color', '#0397C9')};
+    }}
+    
+    .send-btn svg {{
+        color: {colors.get('send_btn_icon_color', '#FFFFFF')} !important;
+        width: 24px !important;
+        height: 24px !important;
+    }}
+    
     .send-btn:hover {{
+        background: {colors.get('send_btn_hover_color', '#027BA3')};
         box-shadow: 0 5px 20px {colors.get('primary', '#00A651')}60 !important;
     }}
     
