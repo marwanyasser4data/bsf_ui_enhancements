@@ -2008,8 +2008,6 @@ body {
     margin-bottom: 20px;
     animation: messageSlide 0.3s ease-out forwards;
     animation-iteration-count: 1;
-    will-change: auto;
-    contain: layout style;
 }
 
 /* Disable animation during streaming to prevent flicker */
@@ -2019,10 +2017,24 @@ body {
     transform: none !important;
 }
 
+/* Streaming content container - CRITICAL for preventing flicker */
 .message.streaming .message-content {
     transition: none !important;
     animation: none !important;
-    will-change: contents;
+    contain: content;
+    isolation: isolate;
+}
+
+.stream-content {
+    contain: content;
+    content-visibility: auto;
+    isolation: isolate;
+}
+
+/* Force no transitions on any child during streaming */
+.message.streaming * {
+    transition: none !important;
+    animation: none !important;
 }
 
 @keyframes messageSlide {

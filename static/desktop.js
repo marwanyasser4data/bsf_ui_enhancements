@@ -415,13 +415,20 @@ function sendMessage(windowId, hideUserMessage = false) {
 
     let updatePending = false;
     let lastUpdateTime = 0;
-    const UPDATE_INTERVAL = 80; // Update every 80ms
+    const UPDATE_INTERVAL = 100; // Update every 100ms
+    let streamContainer = null;
 
     eventSource.onmessage = function (event) {
         if (!botMsgEl) {
             hideTyping(windowId);
             botMsgEl = createMessageElement('bot');
             botMsgEl.classList.add('streaming');
+            
+            const contentDiv = botMsgEl.querySelector('.message-content');
+            streamContainer = document.createElement('div');
+            streamContainer.className = 'stream-content';
+            contentDiv.appendChild(streamContainer);
+            
             windowEl.querySelector('.chat-messages').appendChild(botMsgEl);
         }
 
@@ -435,30 +442,18 @@ function sendMessage(windowId, hideUserMessage = false) {
             updatePending = true;
             lastUpdateTime = now;
             
-            requestAnimationFrame(() => {
-                const contentDiv = botMsgEl.querySelector('.message-content');
-                if (!contentDiv) {
+            setTimeout(() => {
+                if (!streamContainer) {
                     updatePending = false;
                     return;
                 }
 
-                // Create new content element off-DOM (no flashing)
-                const newContent = document.createElement('div');
-                newContent.className = 'message-content';
-                newContent.innerHTML = parseMarkdown(fullResponse);
-                
-                // Copy computed min-height to prevent shrinking
-                const currentHeight = contentDiv.offsetHeight;
-                if (currentHeight > 0) {
-                    newContent.style.minHeight = currentHeight + 'px';
-                }
-
-                // Swap old with new (single DOM operation)
-                contentDiv.replaceWith(newContent);
+                // Use FAST markdown during streaming (no heavy parsing)
+                streamContainer.innerHTML = fastMarkdown(fullResponse);
 
                 scrollToBottom(windowId);
                 updatePending = false;
-            });
+            }, 0);
         }
     };
 
@@ -466,12 +461,14 @@ function sendMessage(windowId, hideUserMessage = false) {
         eventSource.close();
         instance.isStreaming = false;
         instance.eventSource = null;
+        streamContainer = null;
         
         if (botMsgEl) {
             botMsgEl.classList.remove('streaming');
             const contentDiv = botMsgEl.querySelector('.message-content');
             if (contentDiv) {
-                contentDiv.style.minHeight = '';
+                // Final render with FULL markdown (tables, code blocks, etc)
+                contentDiv.innerHTML = parseMarkdown(fullResponse);
             }
         }
         
@@ -783,6 +780,27 @@ function simpleMarkdown(text) {
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
 }
+
+// Fast markdown for streaming - handles basics without full parsing
+function fastMarkdown(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/^- (.+)$/gm, '• $1<br>')
+        .replace(/^\d+\. (.+)$/gm, '$1<br>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+}
+
 function parseMarkdown(text) {
     // Check if the text is a full HTML document
     const trimmedText = text.trim();
