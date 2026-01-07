@@ -1,27 +1,65 @@
 /* Fix for chat message flashing during AI streaming */
-.message {
+
+/* Streaming message should not animate */
+.message.streaming {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.message.streaming .message-content {
     opacity: 1 !important;
     visibility: visible !important;
-    animation: none !important;
-    will-change: auto !important;
+    transition: none !important;
 }
 
-.message.bot {
-    opacity: 1 !important;
-    animation: none !important;
-}
-
-.message-content {
-    opacity: 1 !important;
-    backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
-    transform: translateZ(0);
-}
-
-/* Prevent flashing during text updates */
+/* GPU Acceleration for chat container */
 .chat-messages {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
+    contain: layout style;
+    isolation: isolate;
+}
+
+/* Stable message content during updates */
+.message-content {
+    opacity: 1 !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: contents;
+    contain: layout paint;
+}
+
+/* Prevent content reflow during streaming */
+.message.streaming .message-content {
+    overflow-anchor: none;
+    content-visibility: visible;
+}
+
+/* Smooth text appearance */
+.message-content p,
+.message-content li,
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content pre,
+.message-content code,
+.message-content table {
+    opacity: 1 !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Fix for bot message avatar */
+.message.bot .message-avatar,
+.message.streaming .message-avatar {
+    opacity: 1 !important;
+    animation: none !important;
 }

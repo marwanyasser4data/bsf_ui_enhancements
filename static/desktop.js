@@ -414,11 +414,14 @@ function sendMessage(windowId, hideUserMessage = false) {
     }
 
     let updatePending = false;
+    let lastUpdateTime = 0;
+    const UPDATE_THROTTLE = 50; // Update every 50ms instead of every frame
 
     eventSource.onmessage = function (event) {
         if (!botMsgEl) {
             hideTyping(windowId);
             botMsgEl = createMessageElement('bot');
+            botMsgEl.classList.add('streaming');
             windowEl.querySelector('.chat-messages').appendChild(botMsgEl);
         }
 
@@ -427,24 +430,33 @@ function sendMessage(windowId, hideUserMessage = false) {
 
         fullResponse += chunk;
 
-        if (!updatePending) {
+        const now = Date.now();
+        if (!updatePending && (now - lastUpdateTime) >= UPDATE_THROTTLE) {
             updatePending = true;
+            lastUpdateTime = now;
+            
             requestAnimationFrame(() => {
                 const contentDiv = botMsgEl.querySelector('.message-content');
-
-                // STABILIZATION FIX: Lock height to prevent collapse/flicker during innerHTML swap
-                const currentHeight = contentDiv.offsetHeight;
-                if (currentHeight > 0) {
-                    contentDiv.style.minHeight = currentHeight + 'px';
+                if (!contentDiv) {
+                    updatePending = false;
+                    return;
                 }
 
-                contentDiv.innerHTML = parseMarkdown(fullResponse);
+                // Lock dimensions to prevent layout shift
+                const rect = contentDiv.getBoundingClientRect();
+                if (rect.height > 0) {
+                    contentDiv.style.minHeight = rect.height + 'px';
+                }
 
-                // Release height lock after render (optional, or keep it to prevent shrink)
-                // requestAnimationFrame(() => contentDiv.style.minHeight = 'auto'); 
-                // Better: keep minHeight for stability until next chunk, but let it grow
-                // Actually, if we just set minHeight = current, it can grow but won't shrink instantly.
-                // We should release it if it grew, but for strictly preventing flicker, this is good.
+                // Double-buffer technique: hide update
+                contentDiv.style.visibility = 'hidden';
+                contentDiv.innerHTML = parseMarkdown(fullResponse);
+                
+                // Force reflow
+                void contentDiv.offsetHeight;
+                
+                // Show updated content
+                contentDiv.style.visibility = 'visible';
 
                 scrollToBottom(windowId);
                 updatePending = false;
@@ -456,6 +468,16 @@ function sendMessage(windowId, hideUserMessage = false) {
         eventSource.close();
         instance.isStreaming = false;
         instance.eventSource = null;
+        
+        if (botMsgEl) {
+            botMsgEl.classList.remove('streaming');
+            const contentDiv = botMsgEl.querySelector('.message-content');
+            if (contentDiv) {
+                contentDiv.style.minHeight = '';
+                contentDiv.style.visibility = '';
+            }
+        }
+        
         if (sendBtn) {
             sendBtn.querySelector('.send-icon').style.display = 'block';
             sendBtn.querySelector('.stop-icon').style.display = 'none';
