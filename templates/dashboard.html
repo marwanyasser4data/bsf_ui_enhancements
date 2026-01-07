@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/custom-theme.css?v={{ timestamp }}">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -120,8 +121,24 @@
                         </div>
                         <span class="widget-title" style="font-size: 14px;">Patient Info</span>
                     </div>
-                    <div class="widget-body">
-                        <!-- Empty for now -->
+                    <div class="widget-body" style="padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Patient Stats -->
+                        <div class="side-stat-item">
+                            <span class="side-stat-label">Total Patients</span>
+                            <span class="side-stat-value">1,247</span>
+                        </div>
+                        <div class="side-stat-item">
+                            <span class="side-stat-label">Active Cases</span>
+                            <span class="side-stat-value" style="color: #10b981;">89</span>
+                        </div>
+                        <div class="side-stat-item">
+                            <span class="side-stat-label">Pending</span>
+                            <span class="side-stat-value" style="color: #f59e0b;">23</span>
+                        </div>
+                        <div class="side-stat-item">
+                            <span class="side-stat-label">Completed</span>
+                            <span class="side-stat-value" style="color: #6366f1;">1,135</span>
+                        </div>
                     </div>
                 </div>
 
@@ -137,8 +154,8 @@
                         </div>
                         <span class="widget-title" style="font-size: 14px;">Vital Signs</span>
                     </div>
-                    <div class="widget-body">
-                        <!-- Empty for now -->
+                    <div class="widget-body" style="padding: 15px;">
+                        <canvas id="vitalSignsChartLeft" style="height: 100%;"></canvas>
                     </div>
                 </div>
 
@@ -154,8 +171,49 @@
                         </div>
                         <span class="widget-title" style="font-size: 14px;">Allergies</span>
                     </div>
-                    <div class="widget-body">
-                        <!-- Empty for now -->
+                    <div class="widget-body" style="padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                        <div class="allergy-item">
+                            <div class="allergy-icon" style="background: #fef3c7;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                            </div>
+                            <div class="allergy-info">
+                                <span class="allergy-name">Penicillin</span>
+                                <span class="allergy-severity" style="color: #ef4444;">Severe</span>
+                            </div>
+                        </div>
+                        <div class="allergy-item">
+                            <div class="allergy-icon" style="background: #fef3c7;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                            </div>
+                            <div class="allergy-info">
+                                <span class="allergy-name">Peanuts</span>
+                                <span class="allergy-severity" style="color: #f59e0b;">Moderate</span>
+                            </div>
+                        </div>
+                        <div class="allergy-item">
+                            <div class="allergy-icon" style="background: #fef3c7;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                            </div>
+                            <div class="allergy-info">
+                                <span class="allergy-name">Latex</span>
+                                <span class="allergy-severity" style="color: #10b981;">Mild</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -163,19 +221,173 @@
             <!-- Center Column - Main Display -->
             <div style="display: flex; flex-direction: column; gap: 18px;">
                 <div class="desktop-widget stats-card-widget" data-widget-id="center-main"
-                    style="flex: 1; background: rgba(20, 25, 40, 0.7); position: relative; min-height: 0;">
-                    <div class="widget-body"
-                        style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 50px;">
-                        <div style="text-align: center; color: rgba(255, 255, 255, 0.3);">
-                            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1">
-                                <path
-                                    d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                            <p style="margin-top: 20px; font-size: 17px;">Main Display Area</p>
-                            <p style="font-size: 13px; opacity: 0.7;">Content will be displayed here</p>
+                    style="background: rgba(20, 25, 40, 0.7); position: relative; padding: 25px; overflow: hidden;">
+                    <!-- 6 Statistics Cards Grid (3x2) -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 20px; max-height: 600px;">
+
+                        <!-- Card 1: Total Consultations -->
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-header">
+                                <div class="dash-stat-icon"
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                    </svg>
+                                </div>
+                                <span class="dash-stat-label">Total Consultations</span>
+                            </div>
+                            <div class="dash-stat-value">1,234</div>
+                            <div class="dash-stat-trend positive">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                                    <polyline points="17 6 23 6 23 12" />
+                                </svg>
+                                <span>+12.5% from last month</span>
+                            </div>
+                            <canvas id="consultationsChart" style="height: 50px; margin-top: 10px;"></canvas>
                         </div>
+
+                        <!-- Card 2: AI Response Time -->
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-header">
+                                <div class="dash-stat-icon"
+                                    style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                </div>
+                                <span class="dash-stat-label">Avg Response Time</span>
+                            </div>
+                            <div class="dash-stat-value">1.3<span style="font-size: 18px; opacity: 0.7;">s</span></div>
+                            <div class="dash-stat-trend positive">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                                    <polyline points="17 18 23 18 23 12" />
+                                </svg>
+                                <span>-8% faster</span>
+                            </div>
+                            <canvas id="responseTimeChart" style="height: 50px; margin-top: 10px;"></canvas>
+                        </div>
+
+                        <!-- Card 3: Patient Satisfaction -->
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-header">
+                                <div class="dash-stat-icon"
+                                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polygon
+                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                    </svg>
+                                </div>
+                                <span class="dash-stat-label">Patient Satisfaction</span>
+                            </div>
+                            <div class="dash-stat-value">4.8<span style="font-size: 18px; opacity: 0.7;">/5</span></div>
+                            <div class="dash-stat-stars">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24">
+                                    <polygon
+                                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Active Sessions -->
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-header">
+                                <div class="dash-stat-icon"
+                                    style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                        <circle cx="9" cy="7" r="4" />
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                    </svg>
+                                </div>
+                                <span class="dash-stat-label">Active Sessions</span>
+                            </div>
+                            <div class="dash-stat-value">42</div>
+                            <div class="dash-stat-trend">
+                                <span class="pulse-indicator"></span>
+                                <span>Real-time</span>
+                            </div>
+                            <canvas id="activeSessionsChart" style="height: 50px; margin-top: 10px;"></canvas>
+                        </div>
+
+                        <!-- Card 5: Model Accuracy -->
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-header">
+                                <div class="dash-stat-icon"
+                                    style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                    </svg>
+                                </div>
+                                <span class="dash-stat-label">Model Accuracy</span>
+                            </div>
+                            <div class="dash-stat-value">94.5<span style="font-size: 18px; opacity: 0.7;">%</span></div>
+                            <div class="dash-stat-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"
+                                        style="width: 94.5%; background: linear-gradient(90deg, #30cfd0 0%, #330867 100%);">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 6: System Health -->
+                        <div class="dash-stat-card">
+                            <div class="dash-stat-header">
+                                <div class="dash-stat-icon"
+                                    style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                                    </svg>
+                                </div>
+                                <span class="dash-stat-label">System Health</span>
+                            </div>
+                            <div class="dash-stat-value">98<span style="font-size: 18px; opacity: 0.7;">%</span></div>
+                            <div class="dash-stat-indicators">
+                                <div class="health-indicator">
+                                    <span class="indicator-dot" style="background: #10b981;"></span>
+                                    <span>API</span>
+                                </div>
+                                <div class="health-indicator">
+                                    <span class="indicator-dot" style="background: #10b981;"></span>
+                                    <span>Database</span>
+                                </div>
+                                <div class="health-indicator">
+                                    <span class="indicator-dot" style="background: #f59e0b;"></span>
+                                    <span>Cache</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -197,8 +409,45 @@
                         </div>
                         <span class="widget-title" style="font-size: 14px;">Recent Activity</span>
                     </div>
-                    <div class="widget-body">
-                        <!-- Empty for now -->
+                    <div class="widget-body" style="padding: 15px; display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Activity Timeline -->
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #dbeafe;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6"
+                                    stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                            </div>
+                            <div class="activity-info">
+                                <span class="activity-title">New Consultation</span>
+                                <span class="activity-time">2 min ago</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #dcfce7;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                                    stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                            <div class="activity-info">
+                                <span class="activity-title">Analysis Complete</span>
+                                <span class="activity-time">15 min ago</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: #fef3c7;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                            </div>
+                            <div class="activity-info">
+                                <span class="activity-title">Report Generated</span>
+                                <span class="activity-time">1 hour ago</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -214,8 +463,8 @@
                         </div>
                         <span class="widget-title" style="font-size: 14px;">Vital Signs</span>
                     </div>
-                    <div class="widget-body">
-                        <!-- Empty for now -->
+                    <div class="widget-body" style="padding: 15px;">
+                        <canvas id="vitalSignsChartRight" style="height: 100%;"></canvas>
                     </div>
                 </div>
 
@@ -232,8 +481,9 @@
                         </div>
                         <span class="widget-title" style="font-size: 14px;">AI Analytics</span>
                     </div>
-                    <div class="widget-body">
-                        <!-- Empty for now -->
+                    <div class="widget-body"
+                        style="padding: 15px; display: flex; align-items: center; justify-content: center;">
+                        <canvas id="aiAnalyticsChart" style="max-height: 150px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -1653,6 +1903,452 @@
                 updateDynamicTitles(lang);
                 originalSetLanguage(lang);
             };
+        }
+
+        // ============ Dashboard Stat Cards Styling ============
+        const dashboardStyles = document.createElement('style');
+        dashboardStyles.textContent = `
+            .dash-stat-card {
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(10px);
+                border-radius: 16px;
+                padding: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: all 0.3s ease;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                max-height: 280px;
+                overflow: hidden;
+            }
+
+            .dash-stat-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .dash-stat-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .dash-stat-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            }
+
+            .dash-stat-label {
+                font-size: 13px;
+                color: rgba(255, 255, 255, 0.7);
+                font-weight: 500;
+            }
+
+            .dash-stat-value {
+                font-size: 36px;
+                font-weight: 700;
+                color: white;
+                line-height: 1;
+            }
+
+            .dash-stat-trend {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .dash-stat-trend.positive {
+                color: #10b981;
+            }
+
+            .dash-stat-trend svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .dash-stat-stars {
+                display: flex;
+                gap: 4px;
+            }
+
+            .dash-stat-progress {
+                margin-top: 8px;
+            }
+
+            .progress-bar {
+                width: 100%;
+                height: 8px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+                overflow: hidden;
+            }
+
+            .progress-fill {
+                height: 100%;
+                border-radius: 4px;
+                transition: width 1s ease;
+            }
+
+            .dash-stat-indicators {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 8px;
+            }
+
+            .health-indicator {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+            .indicator-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+            }
+
+            .pulse-indicator {
+                width: 8px;
+                height: 8px;
+                background: #10b981;
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.5;
+                    transform: scale(1.2);
+                }
+            }
+        `;
+        document.head.appendChild(dashboardStyles);
+
+        // ============ Initialize Dashboard Charts ============
+        function initDashboardCharts() {
+            // Chart 1: Consultations Sparkline
+            const consultationsCtx = document.getElementById('consultationsChart');
+            if (consultationsCtx) {
+                new Chart(consultationsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            data: [65, 78, 90, 81, 95, 105, 120],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Chart 2: Response Time Bar Chart
+            const responseTimeCtx = document.getElementById('responseTimeChart');
+            if (responseTimeCtx) {
+                new Chart(responseTimeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            data: [1.8, 1.5, 1.3, 1.4, 1.2, 1.3, 1.1],
+                            backgroundColor: 'rgba(245, 87, 108, 0.6)',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        }
+                    }
+                });
+            }
+
+            // Chart 3: Active Sessions Line Chart
+            const activeSessionsCtx = document.getElementById('activeSessionsChart');
+            if (activeSessionsCtx) {
+                new Chart(activeSessionsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({ length: 20 }, (_, i) => i),
+                        datasets: [{
+                            data: [30, 32, 35, 33, 38, 40, 42, 45, 43, 42, 44, 46, 45, 43, 42, 40, 42, 44, 43, 42],
+                            borderColor: '#fa709a',
+                            backgroundColor: 'rgba(250, 112, 154, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        },
+                        animation: {
+                            duration: 0
+                        }
+                    }
+                });
+
+                // Simulate real-time updates
+                setInterval(() => {
+                    const chart = Chart.getChart(activeSessionsCtx);
+                    if (chart) {
+                        chart.data.datasets[0].data.shift();
+                        chart.data.datasets[0].data.push(Math.floor(Math.random() * 10) + 38);
+                        chart.update('none');
+                    }
+                }, 3000);
+            }
+        }
+
+        // Initialize charts when page loads
+        if (typeof Chart !== 'undefined') {
+            initDashboardCharts();
+            initSideWidgetCharts();
+        }
+
+        // ============ Side Widget Styles ============
+        const sideWidgetStyles = document.createElement('style');
+        sideWidgetStyles.textContent = `
+            /* Side Stat Items */
+            .side-stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .side-stat-item:last-child {
+                border-bottom: none;
+            }
+
+            .side-stat-label {
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .side-stat-value {
+                font-size: 16px;
+                font-weight: 600;
+                color: white;
+            }
+
+            /* Allergy Items */
+            .allergy-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+            }
+
+            .allergy-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .allergy-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                flex: 1;
+            }
+
+            .allergy-name {
+                font-size: 13px;
+                font-weight: 500;
+                color: white;
+            }
+
+            .allergy-severity {
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            /* Activity Items */
+            .activity-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+            }
+
+            .activity-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .activity-info {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                flex: 1;
+            }
+
+            .activity-title {
+                font-size: 13px;
+                font-weight: 500;
+                color: white;
+            }
+
+            .activity-time {
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+        `;
+        document.head.appendChild(sideWidgetStyles);
+
+        // ============ Initialize Side Widget Charts ============
+        function initSideWidgetCharts() {
+            // Vital Signs Chart (Left)
+            const vitalSignsLeftCtx = document.getElementById('vitalSignsChartLeft');
+            if (vitalSignsLeftCtx) {
+                new Chart(vitalSignsLeftCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['12AM', '4AM', '8AM', '12PM', '4PM', '8PM'],
+                        datasets: [{
+                            label: 'Heart Rate',
+                            data: [72, 75, 78, 82, 80, 76],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#ef4444'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255, 255, 255, 0.5)', font: { size: 10 } }
+                            },
+                            y: {
+                                display: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: 'rgba(255, 255, 255, 0.5)', font: { size: 10 } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Vital Signs Chart (Right) - Gauge Style
+            const vitalSignsRightCtx = document.getElementById('vitalSignsChartRight');
+            if (vitalSignsRightCtx) {
+                new Chart(vitalSignsRightCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Normal', 'Remaining'],
+                        datasets: [{
+                            data: [78, 22],
+                            backgroundColor: ['#10b981', 'rgba(255, 255, 255, 0.1)'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: 270,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+            }
+
+            // AI Analytics Donut Chart
+            const aiAnalyticsCtx = document.getElementById('aiAnalyticsChart');
+            if (aiAnalyticsCtx) {
+                new Chart(aiAnalyticsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['GPT-4', 'Claude', 'Gemini'],
+                        datasets: [{
+                            data: [45, 30, 25],
+                            backgroundColor: ['#667eea', '#f093fb', '#4facfe'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    font: { size: 11 },
+                                    padding: 10
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
     </script>
 </body>
