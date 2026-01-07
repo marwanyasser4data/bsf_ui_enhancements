@@ -415,7 +415,7 @@ function sendMessage(windowId, hideUserMessage = false) {
 
     let updatePending = false;
     let lastUpdateTime = 0;
-    const UPDATE_THROTTLE = 50; // Update every 50ms instead of every frame
+    const UPDATE_THROTTLE = 100; // Update every 100ms for smoother experience
 
     eventSource.onmessage = function (event) {
         if (!botMsgEl) {
@@ -448,15 +448,8 @@ function sendMessage(windowId, hideUserMessage = false) {
                     contentDiv.style.minHeight = rect.height + 'px';
                 }
 
-                // Double-buffer technique: hide update
-                contentDiv.style.visibility = 'hidden';
+                // Update content directly - CSS handles anti-flicker
                 contentDiv.innerHTML = parseMarkdown(fullResponse);
-                
-                // Force reflow
-                void contentDiv.offsetHeight;
-                
-                // Show updated content
-                contentDiv.style.visibility = 'visible';
 
                 scrollToBottom(windowId);
                 updatePending = false;
@@ -474,7 +467,6 @@ function sendMessage(windowId, hideUserMessage = false) {
             const contentDiv = botMsgEl.querySelector('.message-content');
             if (contentDiv) {
                 contentDiv.style.minHeight = '';
-                contentDiv.style.visibility = '';
             }
         }
         

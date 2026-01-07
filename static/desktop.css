@@ -2066,14 +2066,22 @@ body {
     background: var(--bot-message-bg, rgba(255, 255, 255, 0.1));
     color: var(--text-primary);
     line-height: 1.6;
-    /* GPU Acceleration & Flicker Prevention */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+    /* Powerful GPU Acceleration & Anti-Flicker */
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: subpixel-antialiased;
     -moz-osx-font-smoothing: grayscale;
-    contain: layout paint;
+    perspective: 1000px;
+    will-change: contents;
+}
+
+/* Force layer for streaming content */
+.message.streaming .message-content {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.9999;
+    contain: strict;
 }
 
 /* Markdown Styling in Chat Messages */
