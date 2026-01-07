@@ -4909,3 +4909,61 @@ body.window-open .desktop-footer-logo {
 .stop-icon {
     display: none;
 }
+
+/* ============ Typing Indicator ============ */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin: 8px 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    width: fit-content;
+    max-width: 80px;
+}
+
+.typing-indicator .dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 3px;
+    background: #667eea;
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-indicator .dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator .dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    30% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+}
+
+/* Typing indicator in bot message */
+.message.bot .typing-indicator {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.message.bot .typing-indicator .dot {
+    background: var(--primary, #667eea);
+}

@@ -826,6 +826,46 @@ window.toggleWindow = function (id) {
     }
 };
 
+// ============ Typing Indicator Functions ============
+function showTypingIndicator(windowId) {
+    const messagesContainer = document.querySelector(`#${windowId} .chat-messages`);
+    if (!messagesContainer) return;
+
+    // Remove existing typing indicator if any
+    hideTypingIndicator(windowId);
+
+    // Create typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot typing-message';
+    typingDiv.id = `typing-indicator-${windowId}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = 'AI';
+
+    const indicator = document.createElement('div');
+    indicator.className = 'typing-indicator';
+    indicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+    typingDiv.appendChild(avatar);
+    typingDiv.appendChild(indicator);
+    messagesContainer.appendChild(typingDiv);
+
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function hideTypingIndicator(windowId) {
+    const typingIndicator = document.getElementById(`typing-indicator-${windowId}`);
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+// Make functions globally available
+window.showTypingIndicator = showTypingIndicator;
+window.hideTypingIndicator = hideTypingIndicator;
+
 // ============ Language Toggle ============
 function applyTranslations() {
     const lang = document.documentElement.lang || 'ar';
