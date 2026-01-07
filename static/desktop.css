@@ -3581,8 +3581,35 @@ body.light-mode .start-menu {
 }
 
 .message.bot .message-avatar {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
+    background: #186677 !important;
+    color: white !important;
+    filter: none !important;
+}
+
+.message.bot .message-avatar svg,
+.message.bot .message-avatar svg *,
+.message.bot .message-avatar path,
+.message.bot .message-avatar circle,
+.message.bot .message-avatar rect,
+.message.bot .message-avatar polygon,
+.message.bot .message-avatar polyline,
+.message.bot .message-avatar line {
+    stroke: white !important;
+    fill: white !important;
+    color: white !important;
+    filter: brightness(0) invert(1) !important;
+}
+
+.message.bot .message-avatar::before,
+.message.bot .message-avatar::after {
+    color: white !important;
+}
+
+.message.bot .message-avatar img,
+.message.bot .message-avatar i,
+.message.bot .message-avatar span {
+    filter: brightness(0) invert(1) !important;
+    color: white !important;
 }
 
 .message-content {
@@ -4966,4 +4993,47 @@ body.window-open .desktop-footer-logo {
 
 .message.bot .typing-indicator .dot {
     background: var(--primary, #667eea);
+}
+
+/* ============ Fix Chat Message Flashing ============ */
+/* Prevent flashing/flickering during AI response streaming */
+.message {
+    opacity: 1 !important;
+    visibility: visible !important;
+    animation: none !important;
+    will-change: auto !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.message.bot {
+    opacity: 1 !important;
+    animation: none !important;
+}
+
+.message-content {
+    opacity: 1 !important;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* Stabilize chat messages container */
+.chat-messages {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: scroll-position;
+}
+
+/* Prevent text flickering during updates */
+.message-text,
+.message p,
+.message span {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }

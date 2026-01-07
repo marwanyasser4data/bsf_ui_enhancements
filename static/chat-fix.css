@@ -1,0 +1,27 @@
+/* Fix for chat message flashing during AI streaming */
+.message {
+    opacity: 1 !important;
+    visibility: visible !important;
+    animation: none !important;
+    will-change: auto !important;
+}
+
+.message.bot {
+    opacity: 1 !important;
+    animation: none !important;
+}
+
+.message-content {
+    opacity: 1 !important;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    transform: translateZ(0);
+}
+
+/* Prevent flashing during text updates */
+.chat-messages {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}

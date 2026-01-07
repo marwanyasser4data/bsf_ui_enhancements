@@ -306,7 +306,14 @@ function initGlobalDelegation() {
                     case 'maximize': toggleMaximize(windowId); break;
                     case 'new-chat': createChatWindow(); break;
                     case 'toggle-view': toggleSidebarView(windowId, actionBtn.dataset.view); break;
-                    case 'send-message': sendMessage(windowId); break;
+                    case 'send-message':
+                        const instance = windowState.chatInstances[windowId];
+                        if (instance && instance.isStreaming) {
+                            stopGeneration(windowId);
+                        } else {
+                            sendMessage(windowId);
+                        }
+                        break;
                     case 'toggle-voice': toggleVoiceInput(windowId); break;
                     case 'quick-message':
                         setInputValue(windowId, actionBtn.dataset.message);
@@ -496,10 +503,26 @@ function scrollToBottom(windowId) {
 
 function stopGeneration(windowId) {
     const instance = windowState.chatInstances[windowId];
-    if (instance && instance.eventSource) {
-        instance.eventSource.close();
+    if (instance) {
+        if (instance.eventSource) {
+            instance.eventSource.close();
+            instance.eventSource = null;
+        }
         instance.isStreaming = false;
         hideTyping(windowId);
+
+        const windowEl = document.getElementById(windowId);
+        if (windowEl) {
+            const sendBtn = windowEl.querySelector('[data-action="send-message"]');
+            if (sendBtn) {
+                const sendIcon = sendBtn.querySelector('.send-icon');
+                const stopIcon = sendBtn.querySelector('.stop-icon');
+                if (sendIcon && stopIcon) {
+                    sendIcon.style.display = 'block';
+                    stopIcon.style.display = 'none';
+                }
+            }
+        }
     }
 }
 
@@ -918,3 +941,74 @@ function toggleLanguage() {
 // Make functions available globally
 window.toggleLanguage = toggleLanguage;
 window.applyTranslations = applyTranslations;
+
+// ============ Force Bot Avatar Icon to White ============
+function forceAvatarWhite() {
+    const botAvatars = document.querySelectorAll('.message.bot .message-avatar');
+    botAvatars.forEach(avatar => {
+        // Force white color on all child elements
+        avatar.style.setProperty('color', 'white', 'important');
+        avatar.style.setProperty('filter', 'none', 'important');
+
+        const children = avatar.querySelectorAll('*');
+        children.forEach(child => {
+            child.style.setProperty('filter', 'brightness(0) invert(1)', 'important');
+            child.style.setProperty('color', 'white', 'important');
+            if (child.tagName === 'svg' || child.tagName === 'SVG') {
+                child.style.setProperty('stroke', 'white', 'important');
+                child.style.setProperty('fill', 'white', 'important');
+            }
+        });
+    });
+}
+
+// Run on load and observe for new messages
+document.addEventListener('DOMContentLoaded', () => {
+    forceAvatarWhite();
+
+    // Watch for new messages
+    const observer = new MutationObserver(() => {
+        forceAvatarWhite();
+    });
+
+    const chatMessages = document.querySelector('.chat-messages');
+    if (chatMessages) {
+        observer.observe(chatMessages, { childList: true, subtree: true });
+    }
+});
+
+// ============ Force Bot Avatar Icon to White ============
+function forceAvatarWhite() {
+    const botAvatars = document.querySelectorAll('.message.bot .message-avatar');
+    botAvatars.forEach(avatar => {
+        // Force white color on all child elements
+        avatar.style.setProperty('color', 'white', 'important');
+        avatar.style.setProperty('filter', 'none', 'important');
+
+        const children = avatar.querySelectorAll('*');
+        children.forEach(child => {
+            child.style.setProperty('filter', 'brightness(0) invert(1)', 'important');
+            child.style.setProperty('color', 'white', 'important');
+            if (child.tagName === 'svg' || child.tagName === 'SVG') {
+                child.style.setProperty('stroke', 'white', 'important');
+                child.style.setProperty('fill', 'white', 'important');
+            }
+        });
+    });
+}
+
+// Run on load and observe for new messages
+document.addEventListener('DOMContentLoaded', () => {
+    forceAvatarWhite();
+
+    // Watch for new messages
+    const observer = new MutationObserver(() => {
+        forceAvatarWhite();
+    });
+
+    const chatMessages = document.querySelector('.chat-messages');
+    if (chatMessages) {
+        observer.observe(chatMessages, { childList: true, subtree: true });
+    }
+});
+
