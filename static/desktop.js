@@ -415,20 +415,13 @@ function sendMessage(windowId, hideUserMessage = false) {
 
     let updatePending = false;
     let lastUpdateTime = 0;
-    const UPDATE_INTERVAL = 100; // Update every 100ms
-    let streamContainer = null;
+    const UPDATE_INTERVAL = 120;
 
     eventSource.onmessage = function (event) {
         if (!botMsgEl) {
             hideTyping(windowId);
             botMsgEl = createMessageElement('bot');
             botMsgEl.classList.add('streaming');
-            
-            const contentDiv = botMsgEl.querySelector('.message-content');
-            streamContainer = document.createElement('div');
-            streamContainer.className = 'stream-content';
-            contentDiv.appendChild(streamContainer);
-            
             windowEl.querySelector('.chat-messages').appendChild(botMsgEl);
         }
 
@@ -442,18 +435,37 @@ function sendMessage(windowId, hideUserMessage = false) {
             updatePending = true;
             lastUpdateTime = now;
             
-            setTimeout(() => {
-                if (!streamContainer) {
+            // Use requestIdleCallback for non-blocking update, fallback to setTimeout
+            const updateFn = () => {
+                const contentDiv = botMsgEl.querySelector('.message-content');
+                if (!contentDiv) {
                     updatePending = false;
                     return;
                 }
 
-                // Use FAST markdown during streaming (no heavy parsing)
-                streamContainer.innerHTML = fastMarkdown(fullResponse);
+                // Create offscreen fragment
+                const fragment = document.createDocumentFragment();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = parseMarkdown(fullResponse);
+                
+                // Move all children to fragment
+                while (tempDiv.firstChild) {
+                    fragment.appendChild(tempDiv.firstChild);
+                }
+                
+                // Clear and append in one go
+                contentDiv.textContent = '';
+                contentDiv.appendChild(fragment);
 
                 scrollToBottom(windowId);
                 updatePending = false;
-            }, 0);
+            };
+            
+            if (window.requestIdleCallback) {
+                requestIdleCallback(updateFn, { timeout: 100 });
+            } else {
+                setTimeout(updateFn, 16);
+            }
         }
     };
 
@@ -461,15 +473,9 @@ function sendMessage(windowId, hideUserMessage = false) {
         eventSource.close();
         instance.isStreaming = false;
         instance.eventSource = null;
-        streamContainer = null;
         
         if (botMsgEl) {
             botMsgEl.classList.remove('streaming');
-            const contentDiv = botMsgEl.querySelector('.message-content');
-            if (contentDiv) {
-                // Final render with FULL markdown (tables, code blocks, etc)
-                contentDiv.innerHTML = parseMarkdown(fullResponse);
-            }
         }
         
         if (sendBtn) {
