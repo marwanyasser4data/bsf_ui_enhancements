@@ -415,7 +415,7 @@ function sendMessage(windowId, hideUserMessage = false) {
 
     let updatePending = false;
     let lastUpdateTime = 0;
-    const UPDATE_THROTTLE = 100; // Update every 100ms for smoother experience
+    const UPDATE_INTERVAL = 80; // Update every 80ms
 
     eventSource.onmessage = function (event) {
         if (!botMsgEl) {
@@ -431,7 +431,7 @@ function sendMessage(windowId, hideUserMessage = false) {
         fullResponse += chunk;
 
         const now = Date.now();
-        if (!updatePending && (now - lastUpdateTime) >= UPDATE_THROTTLE) {
+        if (!updatePending && (now - lastUpdateTime >= UPDATE_INTERVAL)) {
             updatePending = true;
             lastUpdateTime = now;
             
@@ -442,14 +442,19 @@ function sendMessage(windowId, hideUserMessage = false) {
                     return;
                 }
 
-                // Lock dimensions to prevent layout shift
-                const rect = contentDiv.getBoundingClientRect();
-                if (rect.height > 0) {
-                    contentDiv.style.minHeight = rect.height + 'px';
+                // Create new content element off-DOM (no flashing)
+                const newContent = document.createElement('div');
+                newContent.className = 'message-content';
+                newContent.innerHTML = parseMarkdown(fullResponse);
+                
+                // Copy computed min-height to prevent shrinking
+                const currentHeight = contentDiv.offsetHeight;
+                if (currentHeight > 0) {
+                    newContent.style.minHeight = currentHeight + 'px';
                 }
 
-                // Update content directly - CSS handles anti-flicker
-                contentDiv.innerHTML = parseMarkdown(fullResponse);
+                // Swap old with new (single DOM operation)
+                contentDiv.replaceWith(newContent);
 
                 scrollToBottom(windowId);
                 updatePending = false;
