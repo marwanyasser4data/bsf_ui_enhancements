@@ -1,88 +1,76 @@
-/* ============ Enhanced Typing Indicator ============ */
-.typing-indicator {
-    display: flex;
+/* Clean Thinking Indicator - No Scroll Arrows */
+.typing-container {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 16px 20px;
-    margin: 8px 0;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    width: fit-content;
-    min-width: 100px;
-    backdrop-filter: blur(10px);
+    overflow: visible !important;
 }
 
-.typing-indicator .dot {
-    width: 12px;
-    height: 12px;
+.typing-text {
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.typing-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    overflow: visible !important;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
     background: #667eea;
     border-radius: 50%;
-    opacity: 0.6;
-    animation: typing-bounce 1.4s infinite ease-in-out;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    animation: bounce 1.4s infinite ease-in-out;
 }
 
-.typing-indicator .dot:nth-child(1) {
+.typing-dots span:nth-child(1) {
     animation-delay: 0s;
 }
 
-.typing-indicator .dot:nth-child(2) {
+.typing-dots span:nth-child(2) {
     animation-delay: 0.2s;
 }
 
-.typing-indicator .dot:nth-child(3) {
+.typing-dots span:nth-child(3) {
     animation-delay: 0.4s;
 }
 
-@keyframes typing-bounce {
+@keyframes bounce {
 
     0%,
     60%,
     100% {
-        transform: translateY(0) scale(1);
-        opacity: 0.6;
+        transform: translateY(0);
+        opacity: 0.7;
     }
 
     30% {
-        transform: translateY(-12px) scale(1.1);
+        transform: translateY(-8px);
         opacity: 1;
     }
 }
 
-/* Typing indicator in bot message */
-.message.bot .typing-indicator {
-    background: rgba(102, 126, 234, 0.15);
-    border: 1px solid rgba(102, 126, 234, 0.2);
+/* Prevent Scroll Arrows - Critical Fix */
+.message.bot.typing-indicator {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 8px 0 !important;
+    overflow: visible !important;
 }
 
-.message.bot .typing-indicator .dot {
-    background: #667eea;
-}
-
-/* Alternative: Pulsing loader */
-.ai-thinking {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 16px 20px;
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 20px;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-}
-
-.ai-thinking::before {
-    content: '';
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(102, 126, 234, 0.3);
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+.message.bot.typing-indicator .message-content {
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    max-width: none !important;
+    width: auto !important;
 }

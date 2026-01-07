@@ -351,7 +351,7 @@ function initGlobalDelegation() {
 
 // ============ Chat Logic ============
 
-function sendMessage(windowId) {
+function sendMessage(windowId, hideUserMessage = false) {
     const instance = windowState.chatInstances[windowId];
     if (!instance) return;
 
@@ -380,7 +380,11 @@ function sendMessage(windowId) {
         refreshAllSidebars();
     }
 
-    addMessageToWindow(windowId, message, 'user');
+    // Only show user message if hideUserMessage is false
+    if (!hideUserMessage) {
+        addMessageToWindow(windowId, message, 'user');
+    }
+
     instance.history.push({ text: message, type: 'user', timestamp: Date.now() });
     updateSessionHistory(instance.sessionId, instance.history);
 
@@ -427,7 +431,21 @@ function sendMessage(windowId) {
             updatePending = true;
             requestAnimationFrame(() => {
                 const contentDiv = botMsgEl.querySelector('.message-content');
+
+                // STABILIZATION FIX: Lock height to prevent collapse/flicker during innerHTML swap
+                const currentHeight = contentDiv.offsetHeight;
+                if (currentHeight > 0) {
+                    contentDiv.style.minHeight = currentHeight + 'px';
+                }
+
                 contentDiv.innerHTML = parseMarkdown(fullResponse);
+
+                // Release height lock after render (optional, or keep it to prevent shrink)
+                // requestAnimationFrame(() => contentDiv.style.minHeight = 'auto'); 
+                // Better: keep minHeight for stability until next chunk, but let it grow
+                // Actually, if we just set minHeight = current, it can grow but won't shrink instantly.
+                // We should release it if it grew, but for strictly preventing flicker, this is good.
+
                 scrollToBottom(windowId);
                 updatePending = false;
             });
@@ -483,8 +501,18 @@ function showTyping(windowId) {
     indicator.className = 'message bot typing-indicator';
     indicator.innerHTML = `
         <div class="message-avatar">AI</div>
-        <div class="message-content"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+        <div class="message-content">
+            <div class="typing-container">
+                <span class="typing-text">Thinking</span>
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
     `;
+
     container.appendChild(indicator);
     scrollToBottom(windowId);
 }

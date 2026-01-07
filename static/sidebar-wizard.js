@@ -368,19 +368,9 @@ async function sendQueryToAI(query, windowId) {
             const chatInput = win.querySelector('.message-input');
             if (chatInput) {
                 chatInput.value = data.prompt;
-                // Trigger send via Enter key
-                const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true });
-                chatInput.dispatchEvent(enterEvent);
 
-                // Also try clicking the send button as a robust fallback
-                // Try specific button in this window first
-                const sendBtn = win.querySelector('.send-btn') || win.querySelector('[data-action="send-message"]');
-                if (sendBtn) {
-                    console.log('🔘 Clicking send button programmatically');
-                    sendBtn.click();
-                } else {
-                    console.warn('⚠️ Send button not found');
-                }
+                // Send message directly without showing user message in chat
+                sendMessage(windowId, true); // hideUserMessage = true
 
                 // Return to chat
                 toggleSidebarView(windowId, 'history');
