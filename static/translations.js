@@ -14,6 +14,7 @@ const translations = {
         deleteAll: 'حذف الكل',
 
         // Sidebar
+        history: 'السجل',
         chatHistory: 'سجل المحادثات',
         welcome: 'مرحباً بك',
         userEmail: 'user@nhc.sa',
@@ -337,6 +338,7 @@ const translations = {
         deleteAll: 'Delete All',
 
         // Sidebar
+        history: 'History',
         chatHistory: 'Chat History',
         welcome: 'Welcome',
         userEmail: 'user@nhc.sa',

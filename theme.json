@@ -27,7 +27,7 @@
     "opacity": {
         "sidebar": 0,
         "background": 0,
-        "widget": 87,
+        "widget": 0,
         "chat_msg": 100
     },
     "font": "Cairo",
