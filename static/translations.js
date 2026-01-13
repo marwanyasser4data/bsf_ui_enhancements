@@ -315,7 +315,12 @@ const translations = {
         quickActionsWidget: 'إجراءات سريعة',
         newConversationBtn: 'محادثة جديدة',
         controlPanelBtn: 'لوحة التحكم',
-        settingsBtn: 'الإعدادات'
+        settingsBtn: 'الإعدادات',
+
+        // Additional Chat Messages
+        bestProgrammingPractices: 'أفضل ممارسات البرمجة',
+        writeCreativeStory: 'قصة إبداعية',
+        learnMachineLearning: 'تعلم Machine Learning'
 
     },
     en: {
@@ -661,7 +666,24 @@ const translations = {
         quickActionsWidget: 'Quick Actions',
         newConversationBtn: 'New Conversation',
         controlPanelBtn: 'Control Panel',
-        settingsBtn: 'Settings'
+        settingsBtn: 'Settings',
+
+        // Additional Chat Messages
+        bestProgrammingPractices: 'Best Programming Practices',
+        writeCreativeStory: 'Write a Creative Story',
+        learnMachineLearning: 'Learn Machine Learning',
+        explainAIConcept: 'Explain AI Concept',
+        helpWithCode: 'Help with Programming Code',
+        analyzeThisData: 'Analyze This Data',
+        translateThisText: 'Translate This Text',
+        
+        // Prompt Chips
+        whatAreBestPractices: 'What are the best programming practices?',
+        writeShortCreativeStory: 'Write me a short creative story',
+        explainAIConceptToMe: 'Explain the concept of artificial intelligence to me',
+        helpMeWriteCode: 'Help me write programming code',
+        analyzeTheseData: 'Analyze these data',
+        translateText: 'Translate this text'
 
     }
 };

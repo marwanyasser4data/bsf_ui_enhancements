@@ -107,6 +107,13 @@ function createChatWindow(sessionId = null) {
     openWindow(windowId);
     toggleMaximize(windowId);
 
+    // Apply translations to the new chat window
+    setTimeout(() => {
+        if (typeof applyTranslations === 'function') {
+            applyTranslations();
+        }
+    }, 50);
+
     // Initialize Wizard
     if (typeof initSidebarWizard === 'function') {
         initSidebarWizard(windowId);
@@ -134,6 +141,11 @@ function openWindow(windowId) {
 
     document.body.classList.add('window-open');
     updateTaskbar();
+    
+    // Apply translations to newly opened window
+    if (typeof applyTranslations === 'function') {
+        applyTranslations();
+    }
 }
 
 function closeWindow(windowId) {
@@ -977,6 +989,14 @@ function applyTranslations() {
             } else {
                 el.textContent = trans[key];
             }
+        }
+    });
+
+    // Update placeholders with data-i18n-placeholder attribute
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (trans[key]) {
+            el.placeholder = trans[key];
         }
     });
 }

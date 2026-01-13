@@ -67,7 +67,7 @@ Generate a report ONLY IF the user EXCPLICITLY asked for it
 # print(create_agent_response.text)
 
 def generate_response(message, session_key):
-    for i in vectara_api.interact_with_agent(agent_key='agt_hello_world_0ff3',
+    for i in vectara_api.interact_with_agent(agent_key='agt_test_sos_37c7',
                               session_key=session_key,
                               message=message,
                               stream_response=True):

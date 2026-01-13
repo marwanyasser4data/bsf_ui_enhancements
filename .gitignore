@@ -14,7 +14,6 @@ logs/
 .venv
 
 # environment variables
-.env
 
 # git patches
 *.patch
