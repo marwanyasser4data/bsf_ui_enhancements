@@ -7,7 +7,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.prebuilt import create_react_agent
 from typing import Generator, Optional
 import os
-from agentic_flow.scripts.dummy_output import generate_response as agent_generate
+from agentic_flow.scripts.vectara_app import generate_response as agent_generate
 from dotenv import load_dotenv
 
 # Load environment variables

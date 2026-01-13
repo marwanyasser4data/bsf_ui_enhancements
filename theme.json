@@ -1,48 +1,48 @@
 {
     "colors": {
-        "primary": "#ffffff",
-        "primary_dark": "#000000",
-        "primary_light": "#000000",
-        "secondary": "#ffffff",
+        "primary": "#00a7e1",
+        "primary_dark": "#0088b8",
+        "primary_light": "#e0f4fc",
+        "secondary": "#e91e8c",
         "background": "#ffffff",
-        "sidebar": "#186677",
+        "sidebar": "#ffffff",
         "sidebar_text": "#ffffff",
-        "text_primary": "#000000",
-        "text_secondary": "#000000",
-        "user_msg_bg": "#000000",
-        "bot_msg_bg": "#000000",
-        "ai_badge_bg": "#00a651",
+        "text_primary": "#333333",
+        "text_secondary": "#666666",
+        "user_msg_bg": "#e8f7fc",
+        "bot_msg_bg": "#ffffff",
+        "ai_badge_bg": "#00a7e1",
         "taskbar_icons_color": "#ffffff",
-        "app_title_color": "#000000",
-        "header_bar_bg_color": "#005568",
-        "widget_bg_color": "#005568",
-        "widget_border_color": "#ffffff",
-        "widget_title_color": "#ffffff",
-        "widget_text_color": "#ffffff",
-        "widget_icon_ai": "#005568",
-        "widget_icon_chat": "#005568",
-        "widget_icon_system": "#005568",
-        "widget_icon_actions": "#005568"
+        "app_title_color": "#ffffff",
+        "header_bar_bg_color": "#ffffff",
+        "widget_bg_color": "#ffffff",
+        "widget_border_color": "#e0eef4",
+        "widget_title_color": "#333333",
+        "widget_text_color": "#666666",
+        "widget_icon_ai": "#00a7e1",
+        "widget_icon_chat": "#0095ca",
+        "widget_icon_system": "#00b4a0",
+        "widget_icon_actions": "#e91e8c"
     },
     "opacity": {
         "sidebar": 0,
         "background": 0,
-        "widget": 19,
+        "widget": 87,
         "chat_msg": 100
     },
     "font": "Cairo",
     "app_name": {
-        "ar": "البنك السعودي الفرنسي",
-        "en": "Banque Saudi Fransi"
+        "ar": "رفيق المعلومات",
+        "en": "Info Partner"
     },
     "chat_header_title": {
-        "ar": "مساعد الذكاء الاصطناعي",
-        "en": "AI Assistant"
+        "ar": "مساعد بداية الذكي",
+        "en": "Bidaya AI Assistant"
     },
     "logo": {
         "type": "image",
         "text": "",
-        "url": "/static/uploads/55e4b4ab4fddbe53_1050.SR_BIG.D_1.svg"
+        "url": "/static/uploads/560414ddd121a261_logos.png"
     },
-    "background_image": "/static/uploads/f2a7e7cfec44412c_Untitled_design_14.jpg"
+    "background_image": "/static/uploads/cf7068648f1c1186_Untitled_design_5_1.png"
 }

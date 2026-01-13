@@ -1079,11 +1079,17 @@ def custom_theme_css():
     
     /* App Title Styling */
     .app-title {{
-        color: {colors.get('app_title_color', '#FFFFFF')} !important;
-        background: linear-gradient(135deg, {colors.get('app_title_color', '#FFFFFF')} 0%, {hex_to_rgba(colors.get('app_title_color', '#FFFFFF'), 0.7)} 50%, {colors.get('app_title_color', '#FFFFFF')} 100%) !important;
+        color: {colors.get('app_title_color', '#1a1a2e')} !important;
+        background: linear-gradient(135deg, {colors.get('app_title_color', '#1a1a2e')} 0%, {hex_to_rgba(colors.get('app_title_color', '#1a1a2e'), 0.7)} 50%, {colors.get('app_title_color', '#1a1a2e')} 100%) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
         background-clip: text !important;
+    }}
+    
+    /* Header Title */
+    .header-title,
+    #mainAppTitle {{
+        color: black !important;
     }}
     
     /* Desktop Background */
@@ -1125,13 +1131,13 @@ def custom_theme_css():
     
     /* Taskbar - Glass Effect */
     .taskbar {{
-        background: rgba(45, 116, 131, 0.5) !important;
+        background: #31c1f4 !important;
         backdrop-filter: blur(50px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(50px) saturate(180%) !important;
     }}
     
     .taskbar-center {{
-        background: rgb(27 104 121) !important;
+        background: rgb(0 156 211) !important;
     }}
     
     /* Taskbar Icons */
@@ -1157,7 +1163,7 @@ def custom_theme_css():
     
     /* Buttons */
     .new-chat-btn {{
-        background: white !important;
+        background: #00a7e1 !important;
     }}
     
     .new-chat-btn:hover {{
@@ -1187,7 +1193,7 @@ def custom_theme_css():
     /* User Avatar */
     .user-avatar,
     .logo-icon {{
-        background: linear-gradient(135deg, {colors.get('primary', '#00A651')}, {colors.get('secondary', '#1E88E5')}) !important;
+        background: #ea1d76;
     }}
     
     /* Active States */
@@ -1227,38 +1233,43 @@ def custom_theme_css():
     
     /* Desktop Widgets Styling */
     .desktop-widget {{
-        border-color: {hex_to_rgba(colors.get('widget_border_color', '#FFFFFF'), widget_opacity)} !important;
+        border-color: {hex_to_rgba(colors.get('widget_border_color', '#E5E8EB'), widget_opacity)} !important;
     }}
     
     .widget-title {{
-        color: {colors.get('widget_title_color', '#FFFFFF')} !important;
+        color: white !important;
     }}
     
-    .widget-body,
-    .widget-body * {{
-        color: {colors.get('widget_text_color', '#CCCCCC')};
+    .model-name {{
+        color: {colors.get('widget_title_color', '#ffffff')} !important;
+    }}
+    
+    .model-desc,
+    .stat-label,
+    .status-label,
+    .quick-action-btn span {{
+        color: {colors.get('widget_text_color', '#666666')} !important;
     }}
     
     .stat-value,
-    .model-name,
     .action-title {{
-        color: {colors.get('widget_title_color', '#FFFFFF')} !important;
+        color: {colors.get('widget_title_color', '#333333')} !important;
     }}
     
     .widget-icon.ai-icon {{
-        background: linear-gradient(135deg, {colors.get('widget_icon_ai', '#667EEA')}, {colors.get('widget_icon_ai', '#667EEA')}99) !important;
+        background: white !important;
     }}
     
     .widget-icon.chat-stats-icon {{
-        background: linear-gradient(135deg, {colors.get('widget_icon_chat', '#0078D4')}, {colors.get('widget_icon_chat', '#0078D4')}99) !important;
+        background: white !important;
     }}
     
     .widget-icon.system-icon {{
-        background: linear-gradient(135deg, {colors.get('widget_icon_system', '#00A651')}, {colors.get('widget_icon_system', '#00A651')}99) !important;
+        background: white !important;
     }}
     
     .widget-icon.actions-icon {{
-        background: linear-gradient(135deg, {colors.get('widget_icon_actions', '#FF6B6B')}, {colors.get('widget_icon_actions', '#FF6B6B')}99) !important;
+        background: white !important;
     }}
     
     /* Legacy Main Content */

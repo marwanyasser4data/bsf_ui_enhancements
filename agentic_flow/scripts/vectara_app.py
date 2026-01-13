@@ -1,5 +1,5 @@
 import os
-from vectara_api import VectaraAPIs
+from scripts.vectara_api import VectaraAPIs
 import json
 from pathlib import Path
 from pyngrok import ngrok
@@ -16,15 +16,15 @@ vectara_api = VectaraAPIs(api_key=os.getenv('VECTARA_API'))
 
 
 
-mcp_tools_config = {}
-tools = vectara_api.list_tools()
-values = json.loads(tools.text)
-for tool in values['tools']:
-    if tool['type'] =='mcp':
-        if tool.get('server_id', '') == 'tsr_78':
-            if tool['name'] == 'rm_analysis_tool':
-                mcp_tools_config[tool['name']] = {'type': 'mcp', 'tool_id':tool['id']}
-print(mcp_tools_config)
+# mcp_tools_config = {}
+# tools = vectara_api.list_tools()
+# values = json.loads(tools.text)
+# for tool in values['tools']:
+#     if tool['type'] =='mcp':
+#         if tool.get('server_id', '') == 'tsr_78':
+#             if tool['name'] == 'rm_analysis_tool':
+#                 mcp_tools_config[tool['name']] = {'type': 'mcp', 'tool_id':tool['id']}
+# print(mcp_tools_config)
 
 orchestrator_prompt = """
 You are the ORCHESTRATOR AGENT.
@@ -54,20 +54,20 @@ Generate a report ONLY IF the user EXCPLICITLY asked for it
 - output only the final report in HTML
 """
 
-create_agent_response = vectara_api.create_agent(key='RM_report_agent',
-                                                 name='RM_report_agent',
-                                                 department='RM_report',
-                                                 description='An agent that has the capability of generating RM reports',
-                                                 tools_config= mcp_tools_config,
-                                                 system_prompt = orchestrator_prompt,
-                                                 model_name='gpt-5-mini',
-                                                 enable_agent=True)
-print(type(create_agent_response))
-print(create_agent_response)
-print(create_agent_response.text)
+# create_agent_response = vectara_api.create_agent(key='RM_report_agent',
+#                                                  name='RM_report_agent',
+#                                                  department='RM_report',
+#                                                  description='An agent that has the capability of generating RM reports',
+#                                                  tools_config= mcp_tools_config,
+#                                                  system_prompt = orchestrator_prompt,
+#                                                  model_name='gpt-5-mini',
+#                                                  enable_agent=True)
+# print(type(create_agent_response))
+# print(create_agent_response)
+# print(create_agent_response.text)
 
 def generate_response(message, session_key):
-    for i in vectara_api.interact_with_agent(agent_key='RM_report_agent',
+    for i in vectara_api.interact_with_agent(agent_key='agt_hello_world_0ff3',
                               session_key=session_key,
                               message=message,
                               stream_response=True):
